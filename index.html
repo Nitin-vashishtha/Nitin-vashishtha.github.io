@@ -10,12 +10,28 @@
     body {
       margin: 0;
       font-family: 'Roboto', sans-serif;
-      background-color: #0b0c10;
       color: #c5c6c7;
+      background: black;
+      background-image: url('https://upload.wikimedia.org/wikipedia/commons/6/67/Solar_flare_and_Coronal_Mass_Ejection_2012.jpg');
+      background-size: cover;
+      background-attachment: fixed;
+      background-repeat: no-repeat;
+      background-position: center;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      z-index: -1;
     }
 
     header {
-      background-color: #1f2833;
+      background-color: rgba(31, 40, 51, 0.85);
       padding: 1em 2em;
       text-align: center;
       color: #66fcf1;
@@ -29,7 +45,7 @@
 
     nav {
       text-align: center;
-      background: #0b0c10;
+      background: rgba(11, 12, 16, 0.85);
       padding: 1em;
     }
 
@@ -47,6 +63,8 @@
       padding: 2em;
       max-width: 900px;
       margin: auto;
+      background-color: rgba(0, 0, 0, 0.7);
+      border-radius: 10px;
     }
 
     section {
@@ -60,7 +78,7 @@
     }
 
     footer {
-      background: #1f2833;
+      background: rgba(31, 40, 51, 0.85);
       color: #c5c6c7;
       text-align: center;
       padding: 1em;
