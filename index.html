@@ -1051,6 +1051,55 @@
       margin-top: 0.6rem;
     }
 
+    .pub-extra {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows 0.5s ease;
+    }
+
+    .pub-extra.open { grid-template-rows: 1fr; }
+
+    .pub-extra-inner {
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      padding-top: 0;
+      transition: padding-top 0.4s ease;
+    }
+
+    .pub-extra.open .pub-extra-inner { padding-top: 1rem; }
+
+    .btn-pub-toggle {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin-top: 1.25rem;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-2);
+      padding: 0.6rem 1.2rem;
+      border-radius: var(--r);
+      cursor: pointer;
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      letter-spacing: 0.05em;
+      transition: all var(--ease);
+    }
+
+    .btn-pub-toggle:hover {
+      border-color: var(--warm-dim);
+      color: var(--warm);
+    }
+
+    .toggle-arrow {
+      display: inline-block;
+      transition: transform 0.35s ease;
+      font-style: normal;
+    }
+
+    .btn-pub-toggle.open .toggle-arrow { transform: rotate(180deg); }
+
     .pub-index-links {
       display: flex;
       gap: 1.5rem;
@@ -1370,26 +1419,37 @@
           </div>
         </div>
 
-        <div class="pub-card fi d3">
-          <div class="pub-num">04 · 2024</div>
-          <div class="pub-title">The Role of Helicity Injection and Poloidal Magnetic Field in a Breakout CME</div>
-          <div class="pub-authors"><strong>Vashishtha, N.</strong>, Pant, V., Talpeanu, D. C., Banerjee, D.</div>
-          <div class="pub-journal">IAU Symposium 388 — Solar and Stellar Coronal Mass Ejections</div>
-          <div class="pub-footer">
-            <span class="pub-badge proceedings">Proceedings</span>
-          </div>
-        </div>
+      </div>
 
-        <div class="pub-card fi d4">
-          <div class="pub-num">05 · in prep</div>
-          <div class="pub-title">Impact of CME on the Polarization of K-Corona</div>
-          <div class="pub-authors"><strong>Vashishtha, N.</strong>, Pradhan, A., Patel, R., Seaton, D.B.</div>
-          <div class="pub-journal">—</div>
-          <div class="pub-footer">
-            <span class="pub-badge inprep">In Preparation</span>
-          </div>
-        </div>
+      <button class="btn-pub-toggle fi" id="pub-toggle">
+        <i class="toggle-arrow">↓</i>
+        <span id="pub-toggle-label">Show all 5 publications</span>
+      </button>
 
+      <div class="pub-extra" id="pub-extra">
+        <div class="pub-extra-inner">
+
+          <div class="pub-card">
+            <div class="pub-num">04 · 2024</div>
+            <div class="pub-title">The Role of Helicity Injection and Poloidal Magnetic Field in a Breakout CME</div>
+            <div class="pub-authors"><strong>Vashishtha, N.</strong>, Pant, V., Talpeanu, D. C., Banerjee, D.</div>
+            <div class="pub-journal">IAU Symposium 388 — Solar and Stellar Coronal Mass Ejections</div>
+            <div class="pub-footer">
+              <span class="pub-badge proceedings">Proceedings</span>
+            </div>
+          </div>
+
+          <div class="pub-card">
+            <div class="pub-num">05 · in prep</div>
+            <div class="pub-title">Impact of CME on the Polarization of K-Corona</div>
+            <div class="pub-authors"><strong>Vashishtha, N.</strong>, Pradhan, A., Patel, R., Seaton, D.B.</div>
+            <div class="pub-journal">—</div>
+            <div class="pub-footer">
+              <span class="pub-badge inprep">In Preparation</span>
+            </div>
+          </div>
+
+        </div>
       </div>
 
       <div class="pub-index-links fi">
@@ -2027,6 +2087,21 @@ async function loadSpaceWeather() {
       'NOAA SWPC · Data temporarily unavailable';
   }
 }
+
+// ═══════════════════════════════════════════════
+// PUBLICATIONS TOGGLE
+// ═══════════════════════════════════════════════
+(function() {
+  const btn   = document.getElementById('pub-toggle');
+  const extra = document.getElementById('pub-extra');
+  const label = document.getElementById('pub-toggle-label');
+
+  btn.addEventListener('click', () => {
+    const isOpen = extra.classList.toggle('open');
+    btn.classList.toggle('open', isOpen);
+    label.textContent = isOpen ? 'Show fewer publications' : 'Show all 5 publications';
+  });
+})();
 
 // ═══════════════════════════════════════════════
 // SKILL BAR ANIMATION
