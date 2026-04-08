@@ -1,138 +1,1775 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Nitin Vashishtha | Solar Astrophysicist</title>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&family=Roboto&display=swap" rel="stylesheet">
+  <title>Nitin Vashishtha — Solar Astrophysicist</title>
+  <meta name="description" content="Solar astrophysicist specializing in MHD simulations, CME dynamics, and space weather">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&family=IBM+Plex+Serif:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
-    body {
-      margin: 0;
-      font-family: 'Roboto', sans-serif;
-      color: #c5c6c7;
-      background: black;
-      background-image: url('https://upload.wikimedia.org/wikipedia/commons/6/67/Solar_flare_and_Coronal_Mass_Ejection_2012.jpg');
-      background-size: cover;
-      background-attachment: fixed;
-      background-repeat: no-repeat;
-      background-position: center;
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-0: #07090f;
+      --bg-1: #0b0f1c;
+      --bg-2: #0f1628;
+      --bg-3: #162035;
+      --border: #1c2c44;
+      --border-hi: #2a3f60;
+      --warm: #c47c38;
+      --warm-dim: #7a4e22;
+      --warm-glow: rgba(196, 124, 56, 0.12);
+      --cool: #4e8db5;
+      --cool-dim: #2d5a7a;
+      --text-1: #c4d0de;
+      --text-2: #6e8099;
+      --text-3: #3a4e66;
+      --green: #5a9e7a;
+      --serif: 'IBM Plex Serif', Georgia, serif;
+      --sans: 'IBM Plex Sans', system-ui, sans-serif;
+      --mono: 'JetBrains Mono', 'Courier New', monospace;
+      --r: 8px;
+      --ease: 0.3s ease;
     }
 
-    body::before {
-      content: "";
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--sans);
+      background: var(--bg-0);
+      color: var(--text-1);
+      line-height: 1.75;
+      overflow-x: hidden;
+    }
+
+    /* ── Starfield ── */
+    #starfield {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .site-wrap { position: relative; z-index: 1; }
+
+    /* ── Nav ── */
+    #nav {
       position: fixed;
       top: 0;
+      width: 100%;
+      z-index: 100;
+      padding: 1rem 2.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background var(--ease), backdrop-filter var(--ease), border-color var(--ease);
+      border-bottom: 1px solid transparent;
+    }
+
+    #nav.scrolled {
+      background: rgba(7, 9, 15, 0.88);
+      backdrop-filter: blur(14px);
+      border-bottom-color: var(--border);
+    }
+
+    .nav-logo {
+      font-family: var(--serif);
+      font-size: 1.05rem;
+      color: var(--text-1);
+      text-decoration: none;
+      letter-spacing: 0.03em;
+    }
+    .nav-logo em { color: var(--warm); font-style: normal; }
+
+    .nav-links {
+      display: flex;
+      gap: 1.75rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--text-2);
+      text-decoration: none;
+      font-size: 0.78rem;
+      font-weight: 400;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      transition: color var(--ease);
+      position: relative;
+    }
+
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: -3px;
       left: 0;
+      width: 0;
+      height: 1px;
+      background: var(--warm);
+      transition: width var(--ease);
+    }
+
+    .nav-links a:hover,
+    .nav-links a.active { color: var(--text-1); }
+    .nav-links a:hover::after,
+    .nav-links a.active::after { width: 100%; }
+
+    /* ── Hero ── */
+    #hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 7rem 2rem 5rem;
+      position: relative;
+    }
+
+    #solar-canvas {
+      display: block;
+      margin-bottom: 2.5rem;
+    }
+
+    .hero-name {
+      font-family: var(--serif);
+      font-size: clamp(2rem, 5vw, 3.4rem);
+      font-weight: 600;
+      color: var(--text-1);
+      letter-spacing: -0.01em;
+      margin-bottom: 0.4rem;
+      opacity: 0;
+      animation: riseIn 1s ease 0.4s forwards;
+    }
+
+    .hero-title {
+      font-size: clamp(0.85rem, 1.8vw, 1.05rem);
+      color: var(--warm);
+      font-weight: 400;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+      opacity: 0;
+      animation: riseIn 1s ease 0.7s forwards;
+    }
+
+    .hero-desc {
+      max-width: 620px;
+      color: var(--text-2);
+      font-size: 1rem;
+      font-weight: 300;
+      line-height: 1.9;
+      margin-bottom: 2rem;
+      opacity: 0;
+      animation: riseIn 1s ease 1s forwards;
+    }
+
+    .hero-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      justify-content: center;
+      margin-bottom: 3rem;
+      opacity: 0;
+      animation: riseIn 1s ease 1.2s forwards;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 0.28rem 0.85rem;
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--text-2);
+      letter-spacing: 0.04em;
+      transition: all var(--ease);
+      cursor: default;
+    }
+
+    .tag:hover {
+      border-color: var(--warm-dim);
+      color: var(--warm);
+      background: var(--warm-glow);
+    }
+
+    .scroll-cue {
+      position: absolute;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.4rem;
+      opacity: 0;
+      animation: fadeIn 1s ease 2.2s forwards;
+    }
+
+    .scroll-cue span {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text-3);
+    }
+
+    .scroll-needle {
+      width: 1px;
+      height: 38px;
+      background: linear-gradient(to bottom, var(--warm-dim), transparent);
+      animation: needlePulse 2.2s ease-in-out infinite;
+    }
+
+    /* ── Section commons ── */
+    section { padding: 5.5rem 2.5rem; }
+
+    .container {
+      max-width: 1020px;
+      margin: 0 auto;
+    }
+
+    .sec-eyebrow {
+      display: block;
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--warm);
+      margin-bottom: 0.6rem;
+    }
+
+    .sec-title {
+      font-family: var(--serif);
+      font-size: clamp(1.6rem, 3vw, 2.1rem);
+      font-weight: 600;
+      color: var(--text-1);
+      margin-bottom: 0.8rem;
+    }
+
+    .sec-rule {
+      width: 36px;
+      height: 2px;
+      background: var(--warm-dim);
+      margin-bottom: 2.5rem;
+    }
+
+    /* ── Fade-in on scroll ── */
+    .fi {
+      opacity: 0;
+      transform: translateY(22px);
+      transition: opacity 0.65s ease, transform 0.65s ease;
+    }
+    .fi.d1 { transition-delay: 0.1s; }
+    .fi.d2 { transition-delay: 0.2s; }
+    .fi.d3 { transition-delay: 0.3s; }
+    .fi.d4 { transition-delay: 0.45s; }
+    .fi.vis { opacity: 1; transform: none; }
+
+    /* ── About ── */
+    #about { border-top: 1px solid var(--border); }
+
+    .about-grid {
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      gap: 4rem;
+      align-items: start;
+    }
+
+    .about-sidebar {
+      position: sticky;
+      top: 5.5rem;
+    }
+
+    .avatar-box {
+      width: 100%;
+      aspect-ratio: 1;
+      border-radius: var(--r);
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .avatar-box::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 35% 35%, rgba(196, 124, 56, 0.18), transparent 65%);
+    }
+
+    .avatar-glyph { font-size: 3.5rem; opacity: 0.25; }
+
+    .meta-row {
+      margin-bottom: 1rem;
+    }
+
+    .meta-key {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 0.15rem;
+    }
+
+    .meta-val {
+      font-size: 0.85rem;
+      color: var(--text-1);
+      line-height: 1.4;
+    }
+
+    .about-body p {
+      color: var(--text-2);
+      margin-bottom: 1.1rem;
+      font-size: 0.97rem;
+      line-height: 1.92;
+    }
+
+    .about-body p:first-child {
+      color: var(--text-1);
+      font-size: 1.02rem;
+    }
+
+    .stats {
+      display: flex;
+      gap: 2.5rem;
+      padding-top: 2rem;
+      margin-top: 2rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .stat-num {
+      font-family: var(--mono);
+      font-size: 1.9rem;
+      color: var(--warm);
+      line-height: 1;
+    }
+
+    .stat-lbl {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-3);
+      margin-top: 0.2rem;
+    }
+
+    /* ── Observatory ── */
+    #observatory {
+      background: var(--bg-1);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .obs-topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .obs-controls {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.5rem;
+    }
+
+    .live-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--text-3);
+    }
+
+    .live-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 7px var(--green);
+      animation: blink 2.5s ease-in-out infinite;
+    }
+
+    #obs-ts {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: var(--text-3);
+    }
+
+    .btn-refresh {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-2);
+      padding: 0.38rem 0.95rem;
+      border-radius: var(--r);
+      cursor: pointer;
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      transition: all var(--ease);
+    }
+
+    .btn-refresh:hover {
+      border-color: var(--warm-dim);
+      color: var(--warm);
+    }
+
+    .spin-icon { display: inline-block; transition: transform 0.4s; }
+    .btn-refresh.loading .spin-icon { animation: spin 0.8s linear infinite; }
+
+    .aia-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+      gap: 0.9rem;
+      margin-bottom: 1rem;
+    }
+
+    .aia-card {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      overflow: hidden;
+      cursor: pointer;
+      transition: border-color var(--ease), transform var(--ease);
+    }
+
+    .aia-card:hover {
+      border-color: var(--warm-dim);
+      transform: translateY(-2px);
+    }
+
+    .aia-card:hover .aia-hint { opacity: 1; }
+    .aia-card:hover .aia-img { transform: scale(1.04); }
+
+    .aia-imgbox {
+      position: relative;
+      aspect-ratio: 1;
+      background: #000;
+      overflow: hidden;
+    }
+
+    .aia-img {
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.85);
-      z-index: -1;
+      object-fit: cover;
+      display: none;
+      transition: transform 0.4s ease;
     }
 
-    header {
-      background-color: rgba(31, 40, 51, 0.85);
-      padding: 1em 2em;
+    .aia-loading {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg-2);
+    }
+
+    .ring {
+      width: 22px;
+      height: 22px;
+      border: 2px solid var(--border);
+      border-top-color: var(--warm);
+      border-radius: 50%;
+      animation: spin 0.75s linear infinite;
+    }
+
+    .aia-hint {
+      position: absolute;
+      inset: 0;
+      background: rgba(7, 9, 15, 0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity var(--ease);
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--text-1);
+      pointer-events: none;
+    }
+
+    .aia-meta {
+      padding: 0.65rem 0.75rem;
+    }
+
+    .aia-wl {
+      font-family: var(--mono);
+      font-size: 0.82rem;
+      font-weight: 500;
+      margin-bottom: 0.18rem;
+    }
+
+    .aia-dsc {
+      font-size: 0.68rem;
+      color: var(--text-3);
+      line-height: 1.4;
+    }
+
+    .aia-tmp {
+      font-family: var(--mono);
+      font-size: 0.62rem;
+      color: var(--text-3);
+      margin-top: 0.15rem;
+    }
+
+    /* wavelength label colors */
+    .c94  { color: #7effd4; }
+    .c131 { color: #7ec8ff; }
+    .c171 { color: #ffc940; }
+    .c193 { color: #d49060; }
+    .c211 { color: #b878c8; }
+    .c304 { color: #e85a38; }
+    .c335 { color: #6aa8e0; }
+    .c1600 { color: #ffe0a8; }
+    .c1700 { color: #ffd0a0; }
+    .cHMIB { color: #8090a8; }
+    .cHMIIC { color: #b8c4d0; }
+
+    /* ── Modal ── */
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(7, 9, 15, 0.93);
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.28s ease;
+    }
+
+    .modal.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .modal-box {
+      max-width: 820px;
+      width: 92vw;
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      overflow: hidden;
+      transform: scale(0.94);
+      transition: transform 0.28s ease;
+    }
+
+    .modal.open .modal-box { transform: scale(1); }
+
+    .modal-img { width: 100%; display: block; }
+
+    .modal-foot {
+      padding: 1rem 1.2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid var(--border);
+    }
+
+    #modal-wl {
+      font-family: var(--mono);
+      font-size: 0.9rem;
+    }
+
+    #modal-info {
+      font-size: 0.78rem;
+      color: var(--text-2);
+      margin-top: 0.2rem;
+    }
+
+    .btn-close {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-2);
+      padding: 0.35rem 0.8rem;
+      border-radius: var(--r);
+      cursor: pointer;
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      transition: all var(--ease);
+    }
+
+    .btn-close:hover { border-color: var(--warm-dim); color: var(--warm); }
+
+    /* ── Research ── */
+    #research { border-top: 1px solid var(--border); }
+
+    .research-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+      gap: 1.1rem;
+    }
+
+    .r-card {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 1.6rem;
+      transition: border-color var(--ease), transform var(--ease);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .r-card::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 3px; height: 0;
+      background: var(--warm);
+      transition: height 0.4s ease;
+      border-radius: 2px 0 0 2px;
+    }
+
+    .r-card:hover { border-color: var(--border-hi); transform: translateY(-2px); }
+    .r-card:hover::after { height: 100%; }
+
+    .r-icon { font-size: 1.4rem; margin-bottom: 0.9rem; display: block; }
+    .r-title {
+      font-family: var(--serif);
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-1);
+      margin-bottom: 0.5rem;
+    }
+    .r-body { font-size: 0.84rem; color: var(--text-2); line-height: 1.75; }
+
+    /* ── Space Weather ── */
+    #space-weather {
+      background: var(--bg-1);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sw-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+      gap: 1rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .sw-card {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 1.2rem;
+      transition: border-color var(--ease);
+    }
+
+    .sw-card:hover { border-color: var(--border-hi); }
+
+    .sw-lbl {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 0.65rem;
+    }
+
+    .sw-val {
+      font-family: var(--mono);
+      font-size: 1.8rem;
+      color: var(--text-1);
+      line-height: 1;
+      margin-bottom: 0.2rem;
+      transition: color 0.4s;
+    }
+
+    .sw-unit {
+      font-size: 0.72rem;
+      color: var(--text-3);
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .ind {
+      display: inline-block;
+      width: 7px; height: 7px;
+      border-radius: 50%;
+    }
+
+    .ind-q { background: var(--green); }
+    .ind-a { background: #d4a04a; }
+    .ind-s { background: #c04040; box-shadow: 0 0 6px #c04040; }
+
+    .kp-bar {
+      display: flex;
+      gap: 3px;
+      margin-top: 0.75rem;
+      align-items: flex-end;
+      height: 36px;
+    }
+
+    .kp-seg {
+      flex: 1;
+      background: var(--border);
+      border-radius: 2px;
+      min-height: 4px;
+      transition: background 0.5s;
+    }
+    .kp-seg.filled { background: var(--warm-dim); }
+    .kp-seg.hi     { background: var(--warm); }
+
+    #sw-ts {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: var(--text-3);
+      text-align: right;
+    }
+
+    /* ── Timeline ── */
+    #timeline { border-top: 1px solid var(--border); }
+
+    .tl-list {
+      position: relative;
+      padding-left: 2rem;
+    }
+
+    .tl-list::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 8px; bottom: 0;
+      width: 1px;
+      background: linear-gradient(to bottom, var(--warm-dim), transparent);
+    }
+
+    .tl-item {
+      position: relative;
+      margin-bottom: 2.5rem;
+    }
+
+    .tl-item::before {
+      content: '';
+      position: absolute;
+      left: -2rem; top: 6px;
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--warm);
+      box-shadow: 0 0 8px rgba(196,124,56,0.5);
+    }
+
+    .tl-date {
+      font-family: var(--mono);
+      font-size: 0.73rem;
+      color: var(--warm);
+      letter-spacing: 0.1em;
+      margin-bottom: 0.25rem;
+    }
+
+    .tl-title {
+      font-family: var(--serif);
+      font-size: 0.98rem;
+      font-weight: 600;
+      color: var(--text-1);
+      margin-bottom: 0.15rem;
+    }
+
+    .tl-org { font-size: 0.85rem; color: var(--text-2); margin-bottom: 0.4rem; }
+
+    .tl-desc { font-size: 0.82rem; color: var(--text-3); line-height: 1.75; }
+
+    /* ── Publications ── */
+    #publications { border-top: 1px solid var(--border); }
+
+    .pub-empty {
+      background: var(--bg-2);
+      border: 1px dashed var(--border);
+      border-radius: var(--r);
+      padding: 3rem;
       text-align: center;
-      color: #66fcf1;
     }
 
-    header h1 {
-      font-family: 'Orbitron', sans-serif;
-      margin: 0;
-      font-size: 2em;
+    .pub-empty p { color: var(--text-3); font-size: 0.88rem; margin-bottom: 0.75rem; }
+
+    .pub-links {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      flex-wrap: wrap;
     }
 
-    nav {
-      text-align: center;
-      background: rgba(11, 12, 16, 0.85);
-      padding: 1em;
-    }
-
-    nav a {
-      color: #45a29e;
+    .pub-links a {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--warm-dim);
       text-decoration: none;
-      margin: 0 1em;
+      letter-spacing: 0.08em;
+      transition: color var(--ease);
     }
 
-    nav a:hover {
-      color: #66fcf1;
+    .pub-links a:hover { color: var(--warm); }
+
+    /* ── Contact ── */
+    #contact { border-top: 1px solid var(--border); }
+
+    .contact-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3.5rem;
+      align-items: start;
     }
 
-    main {
-      padding: 2em;
-      max-width: 900px;
-      margin: auto;
-      background-color: rgba(0, 0, 0, 0.7);
-      border-radius: 10px;
+    .c-links { display: flex; flex-direction: column; gap: 0.85rem; }
+
+    .c-link {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.85rem 1.15rem;
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      text-decoration: none;
+      color: var(--text-1);
+      transition: all var(--ease);
     }
 
-    section {
-      margin-bottom: 2em;
+    .c-link:hover {
+      border-color: var(--warm-dim);
+      color: var(--warm);
+      transform: translateX(4px);
     }
 
-    h2 {
-      color: #66fcf1;
-      border-bottom: 2px solid #45a29e;
-      padding-bottom: 0.3em;
+    .c-icon { font-size: 1rem; width: 20px; text-align: center; }
+
+    .c-lbl {
+      font-family: var(--mono);
+      font-size: 0.63rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 0.12rem;
     }
 
+    .c-val { font-size: 0.85rem; }
+
+    .contact-text h3 {
+      font-family: var(--serif);
+      font-size: 1.1rem;
+      color: var(--text-1);
+      margin-bottom: 1rem;
+    }
+
+    .contact-text p {
+      color: var(--text-2);
+      font-size: 0.9rem;
+      line-height: 1.85;
+      margin-bottom: 0.9rem;
+    }
+
+    /* ── Footer ── */
     footer {
-      background: rgba(31, 40, 51, 0.85);
-      color: #c5c6c7;
+      background: var(--bg-1);
+      border-top: 1px solid var(--border);
+      padding: 2rem;
       text-align: center;
-      padding: 1em;
-      font-size: 0.9em;
+    }
+
+    .footer-txt {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--text-3);
+      letter-spacing: 0.08em;
+    }
+
+    .footer-txt a { color: var(--warm-dim); text-decoration: none; transition: color var(--ease); }
+    .footer-txt a:hover { color: var(--warm); }
+
+    /* ── Animations ── */
+    @keyframes riseIn {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+
+    @keyframes needlePulse {
+      0%,100% { opacity: 0.25; transform: scaleY(0.8); }
+      50%     { opacity: 0.9;  transform: scaleY(1);   }
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+
+    @keyframes blink {
+      0%,100% { opacity: 1; }
+      50%     { opacity: 0.35; }
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 820px) {
+      .about-grid { grid-template-columns: 1fr; gap: 2.5rem; }
+      .about-sidebar { position: static; display: flex; flex-wrap: wrap; gap: 1.5rem; align-items: flex-start; }
+      .avatar-box { width: 130px; }
+      .contact-grid { grid-template-columns: 1fr; gap: 2rem; }
+      #nav { padding: 0.9rem 1.25rem; }
+      .nav-links { gap: 1rem; }
+    }
+
+    @media (max-width: 560px) {
+      .aia-grid { grid-template-columns: repeat(2, 1fr); }
+      .sw-grid { grid-template-columns: 1fr 1fr; }
+      .nav-links a { font-size: 0.68rem; }
     }
   </style>
 </head>
-
 <body>
-  <header>
-    <h1>Nitin Vashishtha</h1>
-    <p>Solar Astrophysicist | MHD Simulations | Space Weather</p>
-  </header>
 
-  <nav>
-    <a href="#about">About</a>
-    <a href="#research">Research</a>
-    <a href="#publications">Publications</a>
-    <a href="#contact">Contact</a>
+<!-- Starfield -->
+<canvas id="starfield"></canvas>
+
+<div class="site-wrap">
+
+  <!-- ═══ NAV ═══ -->
+  <nav id="nav">
+    <a href="#hero" class="nav-logo">N<em>.</em>Vashishtha</a>
+    <ul class="nav-links">
+      <li><a href="#about">About</a></li>
+      <li><a href="#observatory">Observatory</a></li>
+      <li><a href="#research">Research</a></li>
+      <li><a href="#space-weather">Space Weather</a></li>
+      <li><a href="#timeline">CV</a></li>
+      <li><a href="#publications">Papers</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
   </nav>
 
-  <main>
-    <section id="about">
-      <h2>About Me</h2>
-      <p>I am a solar physicist with a passion for understanding the dynamics of the solar corona and coronal mass ejections (CMEs). My research combines observational data from missions like PSP, WIND, and LASCO with advanced magnetohydrodynamic simulations using the AMRVAC framework. I specialize in forward modeling techniques, space weather impacts, and multi-wavelength diagnostics.</p>
-    </section>
+  <!-- ═══ HERO ═══ -->
+  <section id="hero">
+    <canvas id="solar-canvas" width="280" height="280"></canvas>
+    <h1 class="hero-name">Nitin Vashishtha</h1>
+    <p class="hero-title">Solar Astrophysicist</p>
+    <p class="hero-desc">
+      Studying the Sun's most energetic eruptions — coronal mass ejections, magnetic reconnection,
+      and heliospheric dynamics — through MHD simulations and multi-wavelength observations.
+    </p>
+    <div class="hero-tags">
+      <span class="tag">MHD Simulations</span>
+      <span class="tag">CME Dynamics</span>
+      <span class="tag">MPI-AMRVAC</span>
+      <span class="tag">Space Weather</span>
+      <span class="tag">SDO / AIA</span>
+      <span class="tag">Parker Solar Probe</span>
+      <span class="tag">Forward Modeling</span>
+      <span class="tag">AI/ML in Heliophysics</span>
+    </div>
+    <div class="scroll-cue">
+      <span>Scroll</span>
+      <div class="scroll-needle"></div>
+    </div>
+  </section>
 
-    <section id="research">
-      <h2>Research Interests</h2>
-      <ul>
-        <li>Numerical modeling of CME initiation and propagation</li>
-        <li>Forward modeling of coronagraphic and EUV observations</li>
-        <li>Magnetic reconnection and breakout models</li>
-        <li>Velocity dispersion and wave dynamics in solar plumes</li>
-        <li>AI/ML applications in heliophysics</li>
-      </ul>
-    </section>
+  <!-- ═══ ABOUT ═══ -->
+  <section id="about">
+    <div class="container">
+      <div class="about-grid">
 
-    <section id="publications">
-      <h2>Selected Publications</h2>
-      <p>Coming soon. Please check back later for a complete list of my peer-reviewed publications.</p>
-    </section>
+        <div class="about-sidebar fi">
+          <div class="avatar-box"><span class="avatar-glyph">☀</span></div>
+          <div class="meta-row">
+            <div class="meta-key">Position</div>
+            <div class="meta-val">PhD Researcher</div>
+          </div>
+          <div class="meta-row">
+            <div class="meta-key">Institution</div>
+            <div class="meta-val">Update later</div>
+          </div>
+          <div class="meta-row">
+            <div class="meta-key">Field</div>
+            <div class="meta-val">Solar Physics · Heliophysics</div>
+          </div>
+          <div class="meta-row">
+            <div class="meta-key">Methods</div>
+            <div class="meta-val">MHD · Forward Modeling · ML</div>
+          </div>
+        </div>
 
-    <section id="contact">
-      <h2>Contact</h2>
-      <p>Email: <a href="mailto:nitin.vashishtha@example.com">nitin.vashishtha@example.com</a></p>
-      <p>GitHub: <a href="https://github.com/yourusername" target="_blank">yourusername</a></p>
-      <p>LinkedIn: <a href="https://linkedin.com/in/yourprofile" target="_blank">yourprofile</a></p>
-    </section>
-  </main>
+        <div class="about-body fi d2">
+          <span class="sec-eyebrow">About</span>
+          <h2 class="sec-title">Solar Physics at the Frontier</h2>
+          <div class="sec-rule"></div>
+          <p>
+            I am a solar physicist fascinated by the most energetic phenomena in our solar system.
+            My research centers on understanding how the Sun's magnetic field erupts, drives coronal
+            mass ejections (CMEs), and shapes the heliospheric environment that envelopes Earth.
+          </p>
+          <p>
+            Working at the intersection of theory and observation, I combine advanced
+            magnetohydrodynamic (MHD) simulations — primarily with the <strong style="color:var(--text-1)">MPI-AMRVAC</strong> framework —
+            with multi-wavelength data from missions including <strong style="color:var(--text-1)">Parker Solar Probe</strong>,
+            <strong style="color:var(--text-1)">WIND</strong>, and <strong style="color:var(--text-1)">SDO/AIA</strong>.
+            Forward modeling techniques let me generate synthetic observables for direct comparison
+            with spacecraft data.
+          </p>
+          <p>
+            Beyond CME physics, I explore the application of <strong style="color:var(--text-1)">machine learning</strong>
+            to heliophysics — from automated flare detection to probabilistic space weather forecasting
+            and physics-informed neural networks for plasma dynamics.
+          </p>
+          <div class="stats">
+            <div><div class="stat-num">—</div><div class="stat-lbl">Publications</div></div>
+            <div><div class="stat-num">—</div><div class="stat-lbl">Citations</div></div>
+            <div><div class="stat-num">—</div><div class="stat-lbl">Years Active</div></div>
+          </div>
+        </div>
 
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ SDO OBSERVATORY ═══ -->
+  <section id="observatory">
+    <div class="container">
+      <div class="obs-topbar">
+        <div class="fi">
+          <span class="sec-eyebrow">Live Solar Data</span>
+          <h2 class="sec-title">SDO / AIA Observatory</h2>
+          <div class="sec-rule"></div>
+          <p style="color:var(--text-2);font-size:0.88rem;max-width:580px;line-height:1.8">
+            Near real-time imagery from NASA's Solar Dynamics Observatory. The Atmospheric Imaging
+            Assembly captures the full solar disk across ten UV and EUV wavelength channels every
+            ~12 seconds — a continuous, unblinking eye on our star.
+          </p>
+        </div>
+        <div class="obs-controls fi d2">
+          <div class="live-badge">
+            <div class="live-dot"></div>
+            <span>SDO Live Feed</span>
+          </div>
+          <div id="obs-ts">Fetching…</div>
+          <button class="btn-refresh" id="refresh-btn">
+            <span class="spin-icon">↻</span> Refresh
+          </button>
+        </div>
+      </div>
+
+      <div class="aia-grid" id="aia-grid"></div>
+
+      <p style="font-size:0.68rem;color:var(--text-3);font-family:var(--mono);text-align:right;margin-top:0.5rem">
+        Images: NASA / SDO / AIA — near real-time. Click any channel to enlarge.
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══ RESEARCH ═══ -->
+  <section id="research">
+    <div class="container">
+      <span class="sec-eyebrow fi">Research Areas</span>
+      <h2 class="sec-title fi d1">What I Work On</h2>
+      <div class="sec-rule fi d2"></div>
+      <div class="research-grid">
+        <div class="r-card fi">
+          <span class="r-icon">🌞</span>
+          <h3 class="r-title">CME Initiation &amp; Propagation</h3>
+          <p class="r-body">Numerical modeling of coronal mass ejection launch mechanisms — flux rope emergence, the breakout model, torus instability — and propagation through the inner heliosphere using adaptive mesh refinement.</p>
+        </div>
+        <div class="r-card fi d1">
+          <span class="r-icon">🔬</span>
+          <h3 class="r-title">Forward Modeling</h3>
+          <p class="r-body">Synthesizing white-light coronagraph and EUV images from 3D MHD simulation outputs to bridge the gap between theoretical models and direct spacecraft observations.</p>
+        </div>
+        <div class="r-card fi d2">
+          <span class="r-icon">⚡</span>
+          <h3 class="r-title">Magnetic Reconnection</h3>
+          <p class="r-body">Studying current sheet formation, tearing-mode instabilities, and plasmoid dynamics during solar eruptions, including the role of the heliospheric current sheet in CME evolution.</p>
+        </div>
+        <div class="r-card fi d3">
+          <span class="r-icon">🌊</span>
+          <h3 class="r-title">Wave Dynamics &amp; Plumes</h3>
+          <p class="r-body">Investigating velocity dispersion and oscillatory behavior in solar polar plumes, Alfvén wave propagation, and compressive wave modes in coronal and chromospheric structures.</p>
+        </div>
+        <div class="r-card fi d1">
+          <span class="r-icon">🛰</span>
+          <h3 class="r-title">Multi-Spacecraft Analysis</h3>
+          <p class="r-body">Combining in-situ measurements from Parker Solar Probe, WIND, ACE, and STEREO with remote-sensing data to track heliospheric structures and CME geo-effectiveness.</p>
+        </div>
+        <div class="r-card fi d2">
+          <span class="r-icon">🤖</span>
+          <h3 class="r-title">AI / ML in Heliophysics</h3>
+          <p class="r-body">Applying machine learning to solar flare prediction, automated CME detection in coronagraph imagery, and physics-informed neural networks for magnetohydrodynamic problems.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ SPACE WEATHER ═══ -->
+  <section id="space-weather">
+    <div class="container">
+      <span class="sec-eyebrow fi">NOAA / SWPC</span>
+      <h2 class="sec-title fi d1">Space Weather Monitor</h2>
+      <div class="sec-rule fi d2"></div>
+      <p class="fi d2" style="color:var(--text-2);font-size:0.88rem;margin-bottom:2rem;max-width:580px;line-height:1.8">
+        Live solar-terrestrial conditions from NOAA's Space Weather Prediction Center.
+        Data refresh every 5 minutes.
+      </p>
+
+      <div class="sw-grid">
+        <div class="sw-card fi">
+          <div class="sw-lbl">Planetary Kp Index</div>
+          <div class="sw-val" id="sw-kp">—</div>
+          <div class="sw-unit" id="sw-kp-lbl">Loading…</div>
+          <div class="kp-bar" id="kp-bar">
+            <div class="kp-seg" style="height:11%"></div>
+            <div class="kp-seg" style="height:22%"></div>
+            <div class="kp-seg" style="height:33%"></div>
+            <div class="kp-seg" style="height:44%"></div>
+            <div class="kp-seg" style="height:55%"></div>
+            <div class="kp-seg" style="height:66%"></div>
+            <div class="kp-seg" style="height:77%"></div>
+            <div class="kp-seg" style="height:88%"></div>
+            <div class="kp-seg" style="height:100%"></div>
+          </div>
+        </div>
+
+        <div class="sw-card fi d1">
+          <div class="sw-lbl">Solar Wind Speed</div>
+          <div class="sw-val" id="sw-speed">—</div>
+          <div class="sw-unit">km / s</div>
+        </div>
+
+        <div class="sw-card fi d2">
+          <div class="sw-lbl">IMF Bz Component</div>
+          <div class="sw-val" id="sw-bz">—</div>
+          <div class="sw-unit">nT &nbsp;<span id="sw-bz-dir"></span></div>
+        </div>
+
+        <div class="sw-card fi d3">
+          <div class="sw-lbl">X-Ray Flux Class</div>
+          <div class="sw-val" id="sw-xray">—</div>
+          <div class="sw-unit" id="sw-xray-det">Loading…</div>
+        </div>
+
+        <div class="sw-card fi d1">
+          <div class="sw-lbl">Proton Density</div>
+          <div class="sw-val" id="sw-density">—</div>
+          <div class="sw-unit">p / cm³</div>
+        </div>
+
+        <div class="sw-card fi d2">
+          <div class="sw-lbl">IMF Magnitude |B|</div>
+          <div class="sw-val" id="sw-bt">—</div>
+          <div class="sw-unit">nT</div>
+        </div>
+      </div>
+
+      <p id="sw-ts" style="color:var(--text-3);font-family:var(--mono);font-size:0.68rem;text-align:right">
+        Source: NOAA SWPC
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══ TIMELINE ═══ -->
+  <section id="timeline">
+    <div class="container">
+      <span class="sec-eyebrow fi">Academic Journey</span>
+      <h2 class="sec-title fi d1">Curriculum Vitae</h2>
+      <div class="sec-rule fi d2"></div>
+
+      <div class="tl-list">
+        <div class="tl-item fi">
+          <div class="tl-date">Update Later</div>
+          <div class="tl-title">PhD in Solar / Astrophysics</div>
+          <div class="tl-org">Institution — Department of Physics</div>
+          <div class="tl-desc">Dissertation on CME numerical simulations, forward modeling of EUV and coronagraph observations, and space weather impacts.</div>
+        </div>
+        <div class="tl-item fi d1">
+          <div class="tl-date">Update Later</div>
+          <div class="tl-title">Master of Science — Physics</div>
+          <div class="tl-org">Institution</div>
+          <div class="tl-desc">Specialization in plasma physics and astrophysics. Introduction to numerical methods for fluid dynamics.</div>
+        </div>
+        <div class="tl-item fi d2">
+          <div class="tl-date">Update Later</div>
+          <div class="tl-title">Bachelor of Science — Physics</div>
+          <div class="tl-org">Institution</div>
+          <div class="tl-desc">Foundation in classical mechanics, electrodynamics, quantum mechanics, and modern physics.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ PUBLICATIONS ═══ -->
+  <section id="publications">
+    <div class="container">
+      <span class="sec-eyebrow fi">Peer-Reviewed Work</span>
+      <h2 class="sec-title fi d1">Publications</h2>
+      <div class="sec-rule fi d2"></div>
+
+      <div class="pub-empty fi d3">
+        <p>Publications will be listed here once updated.</p>
+        <p style="color:var(--text-3);font-size:0.8rem;margin-bottom:1.25rem">
+          In the meantime, find my work on:
+        </p>
+        <div class="pub-links">
+          <a href="https://orcid.org/" target="_blank">ORCID ↗</a>
+          <a href="https://scholar.google.com/" target="_blank">Google Scholar ↗</a>
+          <a href="https://ui.adsabs.harvard.edu/" target="_blank">NASA ADS ↗</a>
+          <a href="https://arxiv.org/" target="_blank">arXiv ↗</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ CONTACT ═══ -->
+  <section id="contact">
+    <div class="container">
+      <span class="sec-eyebrow fi">Get in Touch</span>
+      <h2 class="sec-title fi d1">Contact</h2>
+      <div class="sec-rule fi d2"></div>
+
+      <div class="contact-grid">
+        <div class="c-links fi d1">
+          <a href="mailto:nitin.vashishtha@example.com" class="c-link">
+            <span class="c-icon">✉</span>
+            <div><div class="c-lbl">Email</div><div class="c-val">nitin.vashishtha@example.com</div></div>
+          </a>
+          <a href="https://github.com/yourusername" class="c-link" target="_blank">
+            <span class="c-icon">⌥</span>
+            <div><div class="c-lbl">GitHub</div><div class="c-val">github.com/yourusername</div></div>
+          </a>
+          <a href="https://linkedin.com/in/yourprofile" class="c-link" target="_blank">
+            <span class="c-icon">◈</span>
+            <div><div class="c-lbl">LinkedIn</div><div class="c-val">linkedin.com/in/yourprofile</div></div>
+          </a>
+          <a href="https://orcid.org/0000-0000-0000-0000" class="c-link" target="_blank">
+            <span class="c-icon">◎</span>
+            <div><div class="c-lbl">ORCID</div><div class="c-val">0000-0000-0000-0000</div></div>
+          </a>
+        </div>
+
+        <div class="contact-text fi d2">
+          <h3>Open to Collaboration</h3>
+          <p>
+            I welcome inquiries about research collaborations, visiting positions,
+            and discussions around solar MHD simulations, space weather, or
+            machine learning in heliophysics.
+          </p>
+          <p>
+            For code and simulation data associated with published work, please see
+            the linked GitHub repositories or reach out directly.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ FOOTER ═══ -->
   <footer>
-    <p>&copy; 2025 Nitin Vashishtha. All rights reserved.</p>
+    <p class="footer-txt">
+      © 2025 Nitin Vashishtha &nbsp;·&nbsp; Solar Astrophysicist
+      &nbsp;·&nbsp; Data:
+      <a href="https://sdo.gsfc.nasa.gov/" target="_blank">NASA / SDO</a>
+      &nbsp;·&nbsp;
+      <a href="https://www.swpc.noaa.gov/" target="_blank">NOAA SWPC</a>
+    </p>
   </footer>
-</body>
 
+</div><!-- /site-wrap -->
+
+<!-- ═══ IMAGE MODAL ═══ -->
+<div class="modal" id="img-modal">
+  <div class="modal-box">
+    <img src="" alt="" class="modal-img" id="modal-img">
+    <div class="modal-foot">
+      <div>
+        <div id="modal-wl"></div>
+        <div id="modal-info"></div>
+      </div>
+      <button class="btn-close" id="modal-close">✕ Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+// 1. STARFIELD
+// ═══════════════════════════════════════════════
+(function() {
+  const c = document.getElementById('starfield');
+  const x = c.getContext('2d');
+  let W, H, stars;
+
+  function resize() {
+    W = c.width  = window.innerWidth;
+    H = c.height = window.innerHeight;
+  }
+
+  function mkStars(n) {
+    stars = Array.from({ length: n }, () => ({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      r: Math.random() * 1.1 + 0.15,
+      base: Math.random() * 0.65 + 0.1,
+      speed: Math.random() * 0.02 + 0.003,
+      phase: Math.random() * Math.PI * 2,
+    }));
+  }
+
+  let t = 0;
+  function frame() {
+    x.clearRect(0, 0, W, H);
+    t += 0.008;
+    for (const s of stars) {
+      const a = s.base * (0.45 + 0.55 * Math.sin(t * s.speed * 80 + s.phase));
+      x.beginPath();
+      x.arc(s.x, s.y, s.r, 0, 6.283);
+      x.fillStyle = `rgba(196, 212, 230, ${a})`;
+      x.fill();
+    }
+    requestAnimationFrame(frame);
+  }
+
+  resize();
+  mkStars(260);
+  frame();
+  window.addEventListener('resize', () => { resize(); mkStars(260); });
+})();
+
+// ═══════════════════════════════════════════════
+// 2. ANIMATED SOLAR DISK
+// ═══════════════════════════════════════════════
+(function() {
+  const c  = document.getElementById('solar-canvas');
+  const cx_ = c.getContext('2d');
+  const W = 280, H = 280, cx = 140, cy = 140, R = 82;
+
+  // Pre-generate corona streamers
+  const streamers = Array.from({ length: 12 }, (_, i) => ({
+    angle: (i / 12) * Math.PI * 2 + (Math.random() - 0.5) * 0.4,
+    len:   30 + Math.random() * 45,
+    w:     1.5 + Math.random() * 3,
+    phase: Math.random() * Math.PI * 2,
+    speed: (Math.random() - 0.5) * 0.004,
+    opacity: 0.18 + Math.random() * 0.25,
+  }));
+
+  // Pre-generate prominences
+  const proms = Array.from({ length: 7 }, (_, i) => ({
+    angle: (i / 7) * Math.PI * 2 + Math.random(),
+    h: 14 + Math.random() * 22,
+    bw: 5 + Math.random() * 6,
+    speed: (Math.random() - 0.5) * 0.003,
+    phase: Math.random() * Math.PI * 2,
+  }));
+
+  // Pre-generate surface granulation cells
+  const cells = Array.from({ length: 28 }, () => ({
+    ox: (Math.random() - 0.5) * R * 1.72,
+    oy: (Math.random() - 0.5) * R * 1.72,
+    r:  6 + Math.random() * 10,
+    phase: Math.random() * Math.PI * 2,
+    speed: 0.4 + Math.random() * 1.2,
+  }));
+
+  let t = 0;
+
+  function frame() {
+    cx_.clearRect(0, 0, W, H);
+    t += 0.006;
+
+    // — Outer corona glow —
+    const pulseFact = 0.08 + 0.04 * Math.sin(t * 0.7);
+    const cg = cx_.createRadialGradient(cx, cy, R * 0.92, cx, cy, R * 2.7);
+    cg.addColorStop(0,   `rgba(210, 130, 50, ${0.18 + pulseFact})`);
+    cg.addColorStop(0.25,`rgba(190,  90, 30, ${0.08 + pulseFact * 0.5})`);
+    cg.addColorStop(0.6, `rgba(160,  60, 20, 0.03)`);
+    cg.addColorStop(1,    'rgba(0,0,0,0)');
+    cx_.beginPath();
+    cx_.arc(cx, cy, R * 2.7, 0, 6.283);
+    cx_.fillStyle = cg;
+    cx_.fill();
+
+    // — Corona streamers —
+    for (const s of streamers) {
+      s.angle += s.speed;
+      const pulse = 0.65 + 0.35 * Math.sin(t * 1.2 + s.phase);
+      const ex = cx + Math.cos(s.angle) * (R + s.len * pulse);
+      const ey = cy + Math.sin(s.angle) * (R + s.len * pulse);
+      const sx = cx + Math.cos(s.angle) * R;
+      const sy = cy + Math.sin(s.angle) * R;
+
+      const sg = cx_.createLinearGradient(sx, sy, ex, ey);
+      sg.addColorStop(0, `rgba(220, 150, 60, ${s.opacity * pulse})`);
+      sg.addColorStop(1,  'rgba(0,0,0,0)');
+
+      cx_.beginPath();
+      cx_.moveTo(sx, sy);
+      cx_.lineTo(ex, ey);
+      cx_.strokeStyle = sg;
+      cx_.lineWidth   = s.w * pulse;
+      cx_.lineCap     = 'round';
+      cx_.stroke();
+    }
+
+    // — Prominences (arcs) —
+    for (const p of proms) {
+      p.angle += p.speed;
+      const pulse = 0.65 + 0.35 * Math.sin(t * 1.8 + p.phase);
+      const pR = R + p.h * pulse;
+      const a1 = p.angle - 0.05;
+      const a2 = p.angle;
+      const a3 = p.angle + 0.05;
+
+      cx_.beginPath();
+      cx_.moveTo(cx + Math.cos(a1) * R, cy + Math.sin(a1) * R);
+      cx_.quadraticCurveTo(
+        cx + Math.cos(a2) * pR, cy + Math.sin(a2) * pR,
+        cx + Math.cos(a3) * R,  cy + Math.sin(a3) * R
+      );
+      cx_.strokeStyle = `rgba(245, 145, 55, ${0.45 * pulse})`;
+      cx_.lineWidth   = p.bw * 0.45 * pulse;
+      cx_.lineCap     = 'round';
+      cx_.stroke();
+    }
+
+    // — Photosphere (limb darkening) —
+    const dg = cx_.createRadialGradient(cx - R * 0.18, cy - R * 0.18, 0, cx, cy, R);
+    dg.addColorStop(0,    '#fff8e2');
+    dg.addColorStop(0.28, '#ffd890');
+    dg.addColorStop(0.55, '#f0a048');
+    dg.addColorStop(0.78, '#c85820');
+    dg.addColorStop(0.93, '#7a1c06');
+    dg.addColorStop(1,    '#120200');
+
+    cx_.beginPath();
+    cx_.arc(cx, cy, R, 0, 6.283);
+    cx_.fillStyle = dg;
+    cx_.fill();
+
+    // — Surface granulation —
+    cx_.save();
+    cx_.beginPath();
+    cx_.arc(cx, cy, R * 0.93, 0, 6.283);
+    cx_.clip();
+
+    for (const cell of cells) {
+      const dist = Math.sqrt(cell.ox * cell.ox + cell.oy * cell.oy);
+      if (dist > R * 0.88) continue;
+      const a = 0.055 * (0.5 + 0.5 * Math.sin(t * cell.speed + cell.phase));
+      const fg = cx_.createRadialGradient(
+        cx + cell.ox, cy + cell.oy, 0,
+        cx + cell.ox, cy + cell.oy, cell.r
+      );
+      fg.addColorStop(0, `rgba(255, 245, 180, ${a})`);
+      fg.addColorStop(1, 'rgba(0,0,0,0)');
+      cx_.beginPath();
+      cx_.arc(cx + cell.ox, cy + cell.oy, cell.r, 0, 6.283);
+      cx_.fillStyle = fg;
+      cx_.fill();
+    }
+    cx_.restore();
+
+    requestAnimationFrame(frame);
+  }
+
+  frame();
+})();
+
+// ═══════════════════════════════════════════════
+// 3. NAVIGATION
+// ═══════════════════════════════════════════════
+(function() {
+  const nav  = document.getElementById('nav');
+  const links = nav.querySelectorAll('a[href^="#"]');
+  const secs  = document.querySelectorAll('section[id]');
+
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 40);
+
+    let cur = '';
+    secs.forEach(s => {
+      if (window.scrollY >= s.offsetTop - 110) cur = s.id;
+    });
+    links.forEach(a => {
+      a.classList.toggle('active', a.getAttribute('href') === '#' + cur);
+    });
+  }, { passive: true });
+})();
+
+// ═══════════════════════════════════════════════
+// 4. SCROLL-TRIGGERED FADE-IN
+// ═══════════════════════════════════════════════
+(function() {
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('vis'); });
+  }, { threshold: 0.08, rootMargin: '0px 0px -30px 0px' });
+
+  document.querySelectorAll('.fi').forEach(el => obs.observe(el));
+})();
+
+// ═══════════════════════════════════════════════
+// 5. SDO / AIA LIVE IMAGES
+// ═══════════════════════════════════════════════
+const AIA = [
+  { id: '0094', wl: '94 Å',   desc: 'Hot flare plasma',       temp: '~6 MK',        cls: 'c94'   },
+  { id: '0131', wl: '131 Å',  desc: 'Flare / hot plasma',     temp: '~0.4–10 MK',   cls: 'c131'  },
+  { id: '0171', wl: '171 Å',  desc: 'Quiet corona',           temp: '~0.6 MK',       cls: 'c171'  },
+  { id: '0193', wl: '193 Å',  desc: 'Hot corona',             temp: '~1.2 MK',       cls: 'c193'  },
+  { id: '0211', wl: '211 Å',  desc: 'Active region corona',   temp: '~2 MK',         cls: 'c211'  },
+  { id: '0304', wl: '304 Å',  desc: 'Chromosphere / TR',      temp: '~0.05 MK',      cls: 'c304'  },
+  { id: '0335', wl: '335 Å',  desc: 'Hot corona',             temp: '~2.5 MK',       cls: 'c335'  },
+  { id: '1600', wl: '1600 Å', desc: 'UV / upper photosphere', temp: '~0.1 MK',       cls: 'c1600' },
+  { id: '1700', wl: '1700 Å', desc: 'Temperature minimum',    temp: '~5,000 K',      cls: 'c1700' },
+  { id: 'HMIB', wl: 'HMI Mag',desc: 'Magnetic field map',     temp: 'Photosphere',   cls: 'cHMIB' },
+  { id: 'HMIIC',wl: 'HMI IC', desc: 'Continuum intensity',    temp: 'Photosphere',   cls: 'cHMIIC'},
+];
+
+const SDO_BASE = 'https://sdo.gsfc.nasa.gov/assets/img/latest/';
+
+function buildAIAGrid() {
+  const grid = document.getElementById('aia-grid');
+  grid.innerHTML = '';
+
+  AIA.forEach(ch => {
+    const card = document.createElement('div');
+    card.className = 'aia-card fi';
+    card.innerHTML = `
+      <div class="aia-imgbox">
+        <div class="aia-loading" id="loader-${ch.id}"><div class="ring"></div></div>
+        <img class="aia-img" id="img-${ch.id}" alt="SDO AIA ${ch.wl}">
+        <div class="aia-hint">Expand ↗</div>
+      </div>
+      <div class="aia-meta">
+        <div class="aia-wl ${ch.cls}">${ch.wl}</div>
+        <div class="aia-dsc">${ch.desc}</div>
+        <div class="aia-tmp">${ch.temp}</div>
+      </div>`;
+    card.addEventListener('click', () => openModal(ch));
+    grid.appendChild(card);
+  });
+
+  // Observe new cards
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('vis'); });
+  }, { threshold: 0.05 });
+  grid.querySelectorAll('.fi').forEach(el => obs.observe(el));
+}
+
+function loadAIAImages() {
+  const btn = document.getElementById('refresh-btn');
+  btn.classList.add('loading');
+  btn.disabled = true;
+
+  const ts = Date.now();
+  let done = 0;
+
+  AIA.forEach(ch => {
+    const img    = document.getElementById('img-' + ch.id);
+    const loader = document.getElementById('loader-' + ch.id);
+    const url    = `${SDO_BASE}latest_512_${ch.id}.jpg`;
+
+    img.style.display = 'none';
+    if (loader) loader.style.display = 'flex';
+
+    const tmp = new Image();
+
+    const finish = () => {
+      done++;
+      if (done === AIA.length) {
+        btn.classList.remove('loading');
+        btn.disabled = false;
+        const now = new Date();
+        document.getElementById('obs-ts').textContent =
+          'Refreshed ' + now.toUTCString().replace(' GMT', ' UTC');
+      }
+    };
+
+    tmp.onload = () => {
+      img.src = tmp.src;
+      img.style.display = 'block';
+      if (loader) loader.style.display = 'none';
+      finish();
+    };
+
+    tmp.onerror = () => {
+      // Fallback: set directly without crossOrigin
+      img.src = url;
+      img.style.display = 'block';
+      if (loader) loader.style.display = 'none';
+      finish();
+    };
+
+    // Add cache-buster only as fragment hint for src assignment
+    tmp.src = url + '?' + ts;
+  });
+}
+
+// Modal
+function openModal(ch) {
+  const modal = document.getElementById('img-modal');
+  const mimg  = document.getElementById('modal-img');
+  mimg.src    = `${SDO_BASE}latest_1024_${ch.id}.jpg`;
+  mimg.alt    = 'SDO AIA ' + ch.wl;
+
+  const wlEl  = document.getElementById('modal-wl');
+  wlEl.textContent  = ch.wl + ' — ' + ch.desc;
+  wlEl.className    = ch.cls;
+
+  document.getElementById('modal-info').textContent =
+    'Formation temperature: ' + ch.temp + '  ·  NASA / SDO / AIA';
+
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+document.getElementById('modal-close').addEventListener('click', closeModal);
+document.getElementById('img-modal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeModal();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+function closeModal() {
+  document.getElementById('img-modal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+document.getElementById('refresh-btn').addEventListener('click', loadAIAImages);
+
+// ═══════════════════════════════════════════════
+// 6. SPACE WEATHER (NOAA SWPC)
+// ═══════════════════════════════════════════════
+async function loadSpaceWeather() {
+  try {
+    const [magR, plasmaR, kpR, xrayR] = await Promise.allSettled([
+      fetch('https://services.swpc.noaa.gov/json/solar-wind/mag-5-minute.json'),
+      fetch('https://services.swpc.noaa.gov/json/solar-wind/plasma-5-minute.json'),
+      fetch('https://services.swpc.noaa.gov/json/planetary_k_index_1m.json'),
+      fetch('https://services.swpc.noaa.gov/json/goes/primary/xray-fluxes-7-day.json'),
+    ]);
+
+    // IMF magnetic field — array of arrays
+    // [time_tag, bx, by, bz, lon, lat, bt]
+    if (magR.status === 'fulfilled' && magR.value.ok) {
+      const d = await magR.value.json();
+      if (Array.isArray(d) && d.length > 0) {
+        const row = d[d.length - 1];
+        const bz = parseFloat(row[3]);
+        const bt = parseFloat(row[6]);
+        if (!isNaN(bz)) {
+          document.getElementById('sw-bz').textContent = Math.abs(bz).toFixed(1);
+          document.getElementById('sw-bz').style.color =
+            bz < -8 ? '#c04040' : bz < -3 ? '#d4a04a' : 'var(--text-1)';
+          document.getElementById('sw-bz-dir').textContent =
+            bz >= 0 ? '↑ Northward' : '↓ Southward';
+        }
+        if (!isNaN(bt)) document.getElementById('sw-bt').textContent = bt.toFixed(1);
+      }
+    }
+
+    // Plasma — [time_tag, density, speed, temperature]
+    if (plasmaR.status === 'fulfilled' && plasmaR.value.ok) {
+      const d = await plasmaR.value.json();
+      if (Array.isArray(d) && d.length > 0) {
+        const row = d[d.length - 1];
+        const density = parseFloat(row[1]);
+        const speed   = parseFloat(row[2]);
+        if (!isNaN(speed))   document.getElementById('sw-speed').textContent = Math.round(speed);
+        if (!isNaN(density)) document.getElementById('sw-density').textContent = density.toFixed(1);
+      }
+    }
+
+    // Kp index — array of objects with kp_index field
+    if (kpR.status === 'fulfilled' && kpR.value.ok) {
+      const d = await kpR.value.json();
+      if (Array.isArray(d) && d.length > 0) {
+        const row = d[d.length - 1];
+        // handle both object and array form
+        const kp = parseFloat(row.kp_index ?? row[1] ?? row.Kp ?? NaN);
+        if (!isNaN(kp)) {
+          document.getElementById('sw-kp').textContent = kp.toFixed(1);
+
+          let lvlHtml, color;
+          if (kp < 3) {
+            lvlHtml = '<span class="ind ind-q"></span>Quiet';
+            color = 'var(--text-1)';
+          } else if (kp < 5) {
+            lvlHtml = '<span class="ind ind-a"></span>Active';
+            color = '#d4a04a';
+          } else {
+            lvlHtml = '<span class="ind ind-s"></span>Storm';
+            color = '#c04040';
+          }
+
+          document.getElementById('sw-kp').style.color = color;
+          document.getElementById('sw-kp-lbl').innerHTML = lvlHtml;
+
+          const segs = document.querySelectorAll('.kp-seg');
+          segs.forEach((s, i) => {
+            s.classList.remove('filled', 'hi');
+            if (i < Math.floor(kp))    s.classList.add('filled');
+            if (i === Math.floor(kp))  s.classList.add('hi');
+          });
+        }
+      }
+    }
+
+    // X-ray flux
+    if (xrayR.status === 'fulfilled' && xrayR.value.ok) {
+      const d = await xrayR.value.json();
+      if (Array.isArray(d) && d.length > 0) {
+        // Look for short-wave (0.1-0.8nm) entries
+        const shortBand = d.filter(r =>
+          r.energy === '0.1-0.8nm' || r.energy === '1-8A' ||
+          (!r.energy && r.flux !== undefined)
+        );
+        const row = shortBand.length > 0 ? shortBand[shortBand.length - 1] : d[d.length - 1];
+        const flux = parseFloat(row.flux ?? row.observed_flux ?? NaN);
+        if (!isNaN(flux)) {
+          let cls = 'A';
+          if      (flux >= 1e-4) cls = 'X';
+          else if (flux >= 1e-5) cls = 'M';
+          else if (flux >= 1e-6) cls = 'C';
+          else if (flux >= 1e-7) cls = 'B';
+
+          document.getElementById('sw-xray').textContent = cls;
+          document.getElementById('sw-xray').style.color =
+            cls === 'X' ? '#c04040' : cls === 'M' ? '#d4a04a' : 'var(--text-1)';
+          document.getElementById('sw-xray-det').textContent = flux.toExponential(1) + ' W/m²';
+        }
+      }
+    }
+
+    document.getElementById('sw-ts').textContent =
+      'NOAA SWPC · Updated ' + new Date().toUTCString().replace(' GMT', ' UTC');
+
+  } catch (err) {
+    console.warn('Space weather fetch error:', err);
+    document.getElementById('sw-ts').textContent =
+      'NOAA SWPC · Data temporarily unavailable';
+  }
+}
+
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
+buildAIAGrid();
+loadAIAImages();
+loadSpaceWeather();
+
+// Auto-refresh SDO every 30 min, space weather every 5 min
+setInterval(loadAIAImages,   30 * 60 * 1000);
+setInterval(loadSpaceWeather, 5 * 60 * 1000);
+</script>
+</body>
 </html>
