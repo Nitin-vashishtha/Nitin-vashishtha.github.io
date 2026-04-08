@@ -946,11 +946,11 @@
     <a href="#hero" class="nav-logo">N<em>.</em>Vashishtha</a>
     <ul class="nav-links">
       <li><a href="#about">About</a></li>
-      <li><a href="#observatory">Observatory</a></li>
       <li><a href="#research">Research</a></li>
-      <li><a href="#space-weather">Space Weather</a></li>
       <li><a href="#timeline">CV</a></li>
       <li><a href="#publications">Papers</a></li>
+      <li><a href="#observatory">Observatory</a></li>
+      <li><a href="#space-weather">Space Weather</a></li>
       <li><a href="#contact">Contact</a></li>
     </ul>
   </nav>
@@ -1038,40 +1038,6 @@
     </div>
   </section>
 
-  <!-- ═══ SDO OBSERVATORY ═══ -->
-  <section id="observatory">
-    <div class="container">
-      <div class="obs-topbar">
-        <div class="fi">
-          <span class="sec-eyebrow">Live Solar Data</span>
-          <h2 class="sec-title">SDO / AIA Observatory</h2>
-          <div class="sec-rule"></div>
-          <p style="color:var(--text-2);font-size:0.88rem;max-width:580px;line-height:1.8">
-            Near real-time imagery from NASA's Solar Dynamics Observatory. The Atmospheric Imaging
-            Assembly captures the full solar disk across ten UV and EUV wavelength channels every
-            ~12 seconds — a continuous, unblinking eye on our star.
-          </p>
-        </div>
-        <div class="obs-controls fi d2">
-          <div class="live-badge">
-            <div class="live-dot"></div>
-            <span>SDO Live Feed</span>
-          </div>
-          <div id="obs-ts">Fetching…</div>
-          <button class="btn-refresh" id="refresh-btn">
-            <span class="spin-icon">↻</span> Refresh
-          </button>
-        </div>
-      </div>
-
-      <div class="aia-grid" id="aia-grid"></div>
-
-      <p style="font-size:0.68rem;color:var(--text-3);font-family:var(--mono);text-align:right;margin-top:0.5rem">
-        Images: NASA / SDO / AIA — near real-time. Click any channel to enlarge.
-      </p>
-    </div>
-  </section>
-
   <!-- ═══ RESEARCH ═══ -->
   <section id="research">
     <div class="container">
@@ -1110,72 +1076,6 @@
           <p class="r-body">Applying machine learning to solar flare prediction, automated CME detection in coronagraph imagery, and physics-informed neural networks for magnetohydrodynamic problems.</p>
         </div>
       </div>
-    </div>
-  </section>
-
-  <!-- ═══ SPACE WEATHER ═══ -->
-  <section id="space-weather">
-    <div class="container">
-      <span class="sec-eyebrow fi">NOAA / SWPC</span>
-      <h2 class="sec-title fi d1">Space Weather Monitor</h2>
-      <div class="sec-rule fi d2"></div>
-      <p class="fi d2" style="color:var(--text-2);font-size:0.88rem;margin-bottom:2rem;max-width:580px;line-height:1.8">
-        Live solar-terrestrial conditions from NOAA's Space Weather Prediction Center.
-        Data refresh every 5 minutes.
-      </p>
-
-      <div class="sw-grid">
-        <div class="sw-card fi">
-          <div class="sw-lbl">Planetary Kp Index</div>
-          <div class="sw-val" id="sw-kp">—</div>
-          <div class="sw-unit" id="sw-kp-lbl">Loading…</div>
-          <div class="kp-bar" id="kp-bar">
-            <div class="kp-seg" style="height:11%"></div>
-            <div class="kp-seg" style="height:22%"></div>
-            <div class="kp-seg" style="height:33%"></div>
-            <div class="kp-seg" style="height:44%"></div>
-            <div class="kp-seg" style="height:55%"></div>
-            <div class="kp-seg" style="height:66%"></div>
-            <div class="kp-seg" style="height:77%"></div>
-            <div class="kp-seg" style="height:88%"></div>
-            <div class="kp-seg" style="height:100%"></div>
-          </div>
-        </div>
-
-        <div class="sw-card fi d1">
-          <div class="sw-lbl">Solar Wind Speed</div>
-          <div class="sw-val" id="sw-speed">—</div>
-          <div class="sw-unit">km / s</div>
-        </div>
-
-        <div class="sw-card fi d2">
-          <div class="sw-lbl">IMF Bz Component</div>
-          <div class="sw-val" id="sw-bz">—</div>
-          <div class="sw-unit">nT &nbsp;<span id="sw-bz-dir"></span></div>
-        </div>
-
-        <div class="sw-card fi d3">
-          <div class="sw-lbl">X-Ray Flux Class</div>
-          <div class="sw-val" id="sw-xray">—</div>
-          <div class="sw-unit" id="sw-xray-det">Loading…</div>
-        </div>
-
-        <div class="sw-card fi d1">
-          <div class="sw-lbl">Proton Density</div>
-          <div class="sw-val" id="sw-density">—</div>
-          <div class="sw-unit">p / cm³</div>
-        </div>
-
-        <div class="sw-card fi d2">
-          <div class="sw-lbl">IMF Magnitude |B|</div>
-          <div class="sw-val" id="sw-bt">—</div>
-          <div class="sw-unit">nT</div>
-        </div>
-      </div>
-
-      <p id="sw-ts" style="color:var(--text-3);font-family:var(--mono);font-size:0.68rem;text-align:right">
-        Source: NOAA SWPC
-      </p>
     </div>
   </section>
 
@@ -1228,6 +1128,106 @@
           <a href="https://arxiv.org/" target="_blank">arXiv ↗</a>
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- ═══ SDO OBSERVATORY ═══ -->
+  <section id="observatory">
+    <div class="container">
+      <div class="obs-topbar">
+        <div class="fi">
+          <span class="sec-eyebrow">Live Solar Data</span>
+          <h2 class="sec-title">SDO / AIA Observatory</h2>
+          <div class="sec-rule"></div>
+          <p style="color:var(--text-2);font-size:0.88rem;max-width:580px;line-height:1.8">
+            Near real-time imagery from NASA's Solar Dynamics Observatory. The Atmospheric Imaging
+            Assembly captures the full solar disk across ten UV and EUV wavelength channels every
+            ~12 seconds — a continuous, unblinking eye on our star.
+          </p>
+        </div>
+        <div class="obs-controls fi d2">
+          <div class="live-badge">
+            <div class="live-dot"></div>
+            <span>SDO Live Feed</span>
+          </div>
+          <div id="obs-ts">Fetching…</div>
+          <button class="btn-refresh" id="refresh-btn">
+            <span class="spin-icon">↻</span> Refresh
+          </button>
+        </div>
+      </div>
+
+      <div class="aia-grid" id="aia-grid"></div>
+
+      <p style="font-size:0.68rem;color:var(--text-3);font-family:var(--mono);text-align:right;margin-top:0.5rem">
+        Images: NASA / SDO / AIA — near real-time. Click any channel to enlarge.
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══ SPACE WEATHER ═══ -->
+  <section id="space-weather">
+    <div class="container">
+      <span class="sec-eyebrow fi">NOAA / SWPC</span>
+      <h2 class="sec-title fi d1">Space Weather Monitor</h2>
+      <div class="sec-rule fi d2"></div>
+      <p class="fi d2" style="color:var(--text-2);font-size:0.88rem;margin-bottom:2rem;max-width:580px;line-height:1.8">
+        Live solar-terrestrial conditions from NOAA's Space Weather Prediction Center.
+        Data refreshes every 5 minutes.
+      </p>
+
+      <div class="sw-grid">
+        <div class="sw-card fi">
+          <div class="sw-lbl">Planetary Kp Index</div>
+          <div class="sw-val" id="sw-kp">—</div>
+          <div class="sw-unit" id="sw-kp-lbl">Loading…</div>
+          <div class="kp-bar" id="kp-bar">
+            <div class="kp-seg" style="height:11%"></div>
+            <div class="kp-seg" style="height:22%"></div>
+            <div class="kp-seg" style="height:33%"></div>
+            <div class="kp-seg" style="height:44%"></div>
+            <div class="kp-seg" style="height:55%"></div>
+            <div class="kp-seg" style="height:66%"></div>
+            <div class="kp-seg" style="height:77%"></div>
+            <div class="kp-seg" style="height:88%"></div>
+            <div class="kp-seg" style="height:100%"></div>
+          </div>
+        </div>
+
+        <div class="sw-card fi d1">
+          <div class="sw-lbl">Solar Wind Speed</div>
+          <div class="sw-val" id="sw-speed">—</div>
+          <div class="sw-unit">km / s</div>
+        </div>
+
+        <div class="sw-card fi d2">
+          <div class="sw-lbl">IMF Bz Component</div>
+          <div class="sw-val" id="sw-bz">—</div>
+          <div class="sw-unit">nT &nbsp;<span id="sw-bz-dir"></span></div>
+        </div>
+
+        <div class="sw-card fi d3">
+          <div class="sw-lbl">Latest Flare Class</div>
+          <div class="sw-val" id="sw-xray">—</div>
+          <div class="sw-unit" id="sw-xray-det">Loading…</div>
+        </div>
+
+        <div class="sw-card fi d1">
+          <div class="sw-lbl">Proton Density</div>
+          <div class="sw-val" id="sw-density">—</div>
+          <div class="sw-unit">p / cm³</div>
+        </div>
+
+        <div class="sw-card fi d2">
+          <div class="sw-lbl">IMF Magnitude |B|</div>
+          <div class="sw-val" id="sw-bt">—</div>
+          <div class="sw-unit">nT</div>
+        </div>
+      </div>
+
+      <p id="sw-ts" style="color:var(--text-3);font-family:var(--mono);font-size:0.68rem;text-align:right">
+        Source: NOAA SWPC
+      </p>
     </div>
   </section>
 
@@ -1651,18 +1651,20 @@ document.getElementById('refresh-btn').addEventListener('click', loadAIAImages);
 // ═══════════════════════════════════════════════
 async function loadSpaceWeather() {
   try {
-    const [magR, plasmaR, kpR, xrayR] = await Promise.allSettled([
-      fetch('https://services.swpc.noaa.gov/json/solar-wind/mag-5-minute.json'),
-      fetch('https://services.swpc.noaa.gov/json/solar-wind/plasma-5-minute.json'),
+    // Correct endpoints — mag/plasma are under /products/, kp and flares under /json/
+    const [magR, plasmaR, kpR, flareR] = await Promise.allSettled([
+      fetch('https://services.swpc.noaa.gov/products/solar-wind/mag-5-minute.json'),
+      fetch('https://services.swpc.noaa.gov/products/solar-wind/plasma-5-minute.json'),
       fetch('https://services.swpc.noaa.gov/json/planetary_k_index_1m.json'),
-      fetch('https://services.swpc.noaa.gov/json/goes/primary/xray-fluxes-7-day.json'),
+      fetch('https://services.swpc.noaa.gov/json/goes/primary/xray-flares-7-day.json'),
     ]);
 
-    // IMF magnetic field — array of arrays
-    // [time_tag, bx, by, bz, lon, lat, bt]
+    // IMF — /products/ returns array-of-arrays; index 0 is header row, skip it
+    // columns: [time_tag, bx_gsm, by_gsm, bz_gsm, lon_gsm, lat_gsm, bt]
     if (magR.status === 'fulfilled' && magR.value.ok) {
       const d = await magR.value.json();
-      if (Array.isArray(d) && d.length > 0) {
+      // d[0] is the header, last element is latest reading
+      if (Array.isArray(d) && d.length > 1) {
         const row = d[d.length - 1];
         const bz = parseFloat(row[3]);
         const bt = parseFloat(row[6]);
@@ -1677,10 +1679,10 @@ async function loadSpaceWeather() {
       }
     }
 
-    // Plasma — [time_tag, density, speed, temperature]
+    // Plasma — columns: [time_tag, density, speed, temperature]
     if (plasmaR.status === 'fulfilled' && plasmaR.value.ok) {
       const d = await plasmaR.value.json();
-      if (Array.isArray(d) && d.length > 0) {
+      if (Array.isArray(d) && d.length > 1) {
         const row = d[d.length - 1];
         const density = parseFloat(row[1]);
         const speed   = parseFloat(row[2]);
@@ -1689,13 +1691,13 @@ async function loadSpaceWeather() {
       }
     }
 
-    // Kp index — array of objects with kp_index field
+    // Kp index — array of objects: {time_tag, kp_index, estimated_kp, kp}
+    // use estimated_kp for fractional value
     if (kpR.status === 'fulfilled' && kpR.value.ok) {
       const d = await kpR.value.json();
       if (Array.isArray(d) && d.length > 0) {
         const row = d[d.length - 1];
-        // handle both object and array form
-        const kp = parseFloat(row.kp_index ?? row[1] ?? row.Kp ?? NaN);
+        const kp = parseFloat(row.estimated_kp ?? row.kp_index ?? NaN);
         if (!isNaN(kp)) {
           document.getElementById('sw-kp').textContent = kp.toFixed(1);
 
@@ -1717,36 +1719,28 @@ async function loadSpaceWeather() {
           const segs = document.querySelectorAll('.kp-seg');
           segs.forEach((s, i) => {
             s.classList.remove('filled', 'hi');
-            if (i < Math.floor(kp))    s.classList.add('filled');
-            if (i === Math.floor(kp))  s.classList.add('hi');
+            if (i < Math.floor(kp))   s.classList.add('filled');
+            if (i === Math.floor(kp)) s.classList.add('hi');
           });
         }
       }
     }
 
-    // X-ray flux
-    if (xrayR.status === 'fulfilled' && xrayR.value.ok) {
-      const d = await xrayR.value.json();
+    // X-ray flares — objects with max_class (e.g. "B8.8") and max_xrlong (flux W/m²)
+    if (flareR.status === 'fulfilled' && flareR.value.ok) {
+      const d = await flareR.value.json();
       if (Array.isArray(d) && d.length > 0) {
-        // Look for short-wave (0.1-0.8nm) entries
-        const shortBand = d.filter(r =>
-          r.energy === '0.1-0.8nm' || r.energy === '1-8A' ||
-          (!r.energy && r.flux !== undefined)
-        );
-        const row = shortBand.length > 0 ? shortBand[shortBand.length - 1] : d[d.length - 1];
-        const flux = parseFloat(row.flux ?? row.observed_flux ?? NaN);
-        if (!isNaN(flux)) {
-          let cls = 'A';
-          if      (flux >= 1e-4) cls = 'X';
-          else if (flux >= 1e-5) cls = 'M';
-          else if (flux >= 1e-6) cls = 'C';
-          else if (flux >= 1e-7) cls = 'B';
+        const row = d[d.length - 1];
+        const cls  = (row.max_class || row.begin_class || '—').charAt(0);
+        const flux = parseFloat(row.max_xrlong ?? row.max_xrshort ?? NaN);
 
-          document.getElementById('sw-xray').textContent = cls;
-          document.getElementById('sw-xray').style.color =
-            cls === 'X' ? '#c04040' : cls === 'M' ? '#d4a04a' : 'var(--text-1)';
-          document.getElementById('sw-xray-det').textContent = flux.toExponential(1) + ' W/m²';
-        }
+        document.getElementById('sw-xray').textContent = cls || '—';
+        document.getElementById('sw-xray').style.color =
+          cls === 'X' ? '#c04040' : cls === 'M' ? '#d4a04a' : 'var(--text-1)';
+
+        const detail = row.max_class || row.begin_class || '';
+        document.getElementById('sw-xray-det').textContent =
+          detail + (!isNaN(flux) ? '  (' + flux.toExponential(1) + ' W/m²)' : '');
       }
     }
 
