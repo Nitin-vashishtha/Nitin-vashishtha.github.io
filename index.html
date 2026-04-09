@@ -142,15 +142,16 @@
       pointer-events: none;
     }
 
-    /* Dark vignette so the text stays readable over the bright sun center */
+    /* Dark vignette so the text stays readable over the bright solar center */
     #hero::after {
       content: '';
       position: absolute;
       inset: 0;
       background: radial-gradient(
-        ellipse 55% 55% at 50% 50%,
-        rgba(7,9,15,0.55) 0%,
-        rgba(7,9,15,0.1) 55%,
+        ellipse 48% 48% at 50% 50%,
+        rgba(7,9,15,0.72) 0%,
+        rgba(7,9,15,0.35) 42%,
+        rgba(7,9,15,0.08) 70%,
         rgba(7,9,15,0.0) 100%
       );
       z-index: 1;
@@ -171,6 +172,7 @@
       margin-bottom: 0.4rem;
       opacity: 0;
       animation: riseIn 1s ease 0.4s forwards;
+      text-shadow: 0 0 40px rgba(0,0,0,0.95), 0 2px 16px rgba(0,0,0,0.85);
     }
 
     .hero-title {
@@ -182,6 +184,7 @@
       margin-bottom: 1.5rem;
       opacity: 0;
       animation: riseIn 1s ease 0.7s forwards;
+      text-shadow: 0 0 24px rgba(0,0,0,0.85);
     }
 
     .hero-desc {
@@ -193,6 +196,7 @@
       margin-bottom: 2rem;
       opacity: 0;
       animation: riseIn 1s ease 1s forwards;
+      text-shadow: 0 1px 10px rgba(0,0,0,0.75);
     }
 
     .hero-tags {
@@ -1714,143 +1718,251 @@
 })();
 
 // ═══════════════════════════════════════════════
-// 2. ANIMATED SOLAR DISK
+// 2. ANIMATED SOLAR DISK — physically realistic
+//    · Differential rotation (Snodgrass 1990)
+//    · Sunspots with umbra/penumbra + foreshortening
+//    · H-α loop prominences at limb
+//    · Granulation (convection cells)
+//    · Limb darkening (5778K center → 4400K limb)
 // ═══════════════════════════════════════════════
 (function() {
-  const c  = document.getElementById('solar-canvas');
-  const cx_ = c.getContext('2d');
-  const W = 820, H = 820, cx = 410, cy = 410, R = 210;
+  const c   = document.getElementById('solar-canvas');
+  const ctx = c.getContext('2d');
+  const W = 820, H = 820, CX = 410, CY = 410, R = 210;
+  const PI2 = Math.PI * 2;
+  const DEG = Math.PI / 180;
 
-  // Pre-generate corona streamers — more of them, longer
-  const streamers = Array.from({ length: 22 }, (_, i) => ({
-    angle: (i / 22) * Math.PI * 2 + (Math.random() - 0.5) * 0.5,
-    len:   80 + Math.random() * 130,
-    w:     2 + Math.random() * 5,
-    phase: Math.random() * Math.PI * 2,
-    speed: (Math.random() - 0.5) * 0.003,
-    opacity: 0.14 + Math.random() * 0.22,
+  // Equatorial rotation period (animation seconds per full rotation)
+  const EQ_PERIOD = 10;
+  const EQ_OMEGA  = PI2 / EQ_PERIOD;
+
+  // Snodgrass (1990) differential rotation — normalized to equatorial = 1
+  // ω(b) = (14.713 − 2.396·sin²b − 1.787·sin⁴b) / 14.713
+  function diffOmega(lat) {
+    const s2 = Math.sin(lat) ** 2;
+    return (14.713 - 2.396 * s2 - 1.787 * s2 * s2) / 14.713;
+  }
+
+  // Spherical → 2D disk projection
+  // lon = longitude relative to central meridian, lat = heliographic latitude
+  function project(lon, lat) {
+    const x =  Math.cos(lat) * Math.sin(lon);
+    const y = -Math.sin(lat);
+    const z =  Math.cos(lat) * Math.cos(lon);   // >0 = front hemisphere
+    return { px: CX + x * R, py: CY + y * R, z };
+  }
+
+  // ── Sunspot groups (fixed lat, longitude drifts via differential rotation) ──
+  // rU = umbra radius, rP = penumbra radius (canvas px at disk centre)
+  const SPOTS = [
+    { lat:  18*DEG, rU: 15, rP: 26 },  // AR1 – leading spot, N hemi
+    { lat:  14*DEG, rU:  8, rP: 15 },  // AR1 – follower
+    { lat: -22*DEG, rU: 19, rP: 32 },  // AR2 – leading spot, S hemi
+    { lat: -17*DEG, rU: 10, rP: 17 },  // AR2 – follower
+    { lat:  10*DEG, rU: 13, rP: 21 },  // isolated spot N
+    { lat:  -6*DEG, rU:  7, rP: 13 },  // isolated spot S
+    { lat:  28*DEG, rU: 10, rP: 18 },  // high-latitude N
+    { lat: -32*DEG, rU:  7, rP: 13 },  // high-latitude S
+  ];
+
+  // Starting longitudes spread around the disk
+  const spotLons = [
+    15*DEG, 28*DEG, 188*DEG, 200*DEG,
+    98*DEG, 295*DEG, 340*DEG, 160*DEG,
+  ];
+
+  // ── H-α loop prominences at the limb ──
+  // pinkish-red (Hα 656 nm), arch shape, slow drift + undulation
+  const PROMS = Array.from({ length: 7 }, (_, i) => ({
+    ang:    (i / 7) * PI2 + (Math.random() - 0.5) * 0.6,
+    h:      28 + Math.random() * 48,    // arch height (px)
+    span:   0.055 + Math.random() * 0.07, // half-angle span at limb
+    drift:  (Math.random() - 0.5) * 0.009,
+    phase:  Math.random() * PI2,
+    alpha:  0.55 + Math.random() * 0.35,
   }));
 
-  // Pre-generate prominences
-  const proms = Array.from({ length: 10 }, (_, i) => ({
-    angle: (i / 10) * Math.PI * 2 + Math.random(),
-    h: 35 + Math.random() * 55,
-    bw: 10 + Math.random() * 14,
-    speed: (Math.random() - 0.5) * 0.003,
-    phase: Math.random() * Math.PI * 2,
+  // ── Corona streamers ──
+  const STREAMERS = Array.from({ length: 20 }, (_, i) => ({
+    ang:   (i / 20) * PI2 + (Math.random() - 0.5) * 0.4,
+    len:   85 + Math.random() * 140,
+    w:     2.5 + Math.random() * 5,
+    phase: Math.random() * PI2,
+    drift: (Math.random() - 0.5) * 0.007,
+    alpha: 0.11 + Math.random() * 0.17,
   }));
 
-  // Pre-generate surface granulation cells
-  const cells = Array.from({ length: 55 }, () => ({
+  // ── Granulation cells (convective upwellings) ──
+  const CELLS = Array.from({ length: 65 }, () => ({
     ox: (Math.random() - 0.5) * R * 1.72,
     oy: (Math.random() - 0.5) * R * 1.72,
-    r:  14 + Math.random() * 24,
-    phase: Math.random() * Math.PI * 2,
-    speed: 0.4 + Math.random() * 1.2,
+    r:  15 + Math.random() * 25,
+    phase: Math.random() * PI2,
+    speed: 0.35 + Math.random() * 1.0,
   }));
 
-  let t = 0;
+  let lastTs = null, simT = 0;
 
-  function frame() {
-    cx_.clearRect(0, 0, W, H);
-    t += 0.005;
+  function frame(ts) {
+    if (!lastTs) lastTs = ts;
+    const dt = Math.min((ts - lastTs) / 1000, 0.05);
+    lastTs = ts;
+    simT  += dt;
 
-    // — Outer corona glow —
-    const pulseFact = 0.06 + 0.03 * Math.sin(t * 0.7);
-    const cg = cx_.createRadialGradient(cx, cy, R * 0.92, cx, cy, R * 2.7);
-    cg.addColorStop(0,   `rgba(210, 130, 50, ${0.18 + pulseFact})`);
-    cg.addColorStop(0.25,`rgba(190,  90, 30, ${0.08 + pulseFact * 0.5})`);
-    cg.addColorStop(0.6, `rgba(160,  60, 20, 0.03)`);
+    // Advance spot longitudes (differential rotation per latitude)
+    SPOTS.forEach((s, i) => { spotLons[i] += dt * EQ_OMEGA * diffOmega(s.lat); });
+
+    ctx.clearRect(0, 0, W, H);
+
+    // ─── 1. Outer corona / F-corona glow ───
+    const pulse = 0.05 + 0.022 * Math.sin(simT * 0.55);
+    const cg = ctx.createRadialGradient(CX, CY, R * 0.88, CX, CY, R * 3.1);
+    cg.addColorStop(0,    `rgba(220, 140, 55, ${0.22 + pulse})`);
+    cg.addColorStop(0.18, `rgba(196,  98, 36, ${0.11 + pulse * 0.5})`);
+    cg.addColorStop(0.50, 'rgba(160, 60, 20, 0.04)');
     cg.addColorStop(1,    'rgba(0,0,0,0)');
-    cx_.beginPath();
-    cx_.arc(cx, cy, R * 2.7, 0, 6.283);
-    cx_.fillStyle = cg;
-    cx_.fill();
+    ctx.beginPath();
+    ctx.arc(CX, CY, R * 3.1, 0, PI2);
+    ctx.fillStyle = cg;
+    ctx.fill();
 
-    // — Corona streamers —
-    for (const s of streamers) {
-      s.angle += s.speed;
-      const pulse = 0.65 + 0.35 * Math.sin(t * 1.2 + s.phase);
-      const ex = cx + Math.cos(s.angle) * (R + s.len * pulse);
-      const ey = cy + Math.sin(s.angle) * (R + s.len * pulse);
-      const sx = cx + Math.cos(s.angle) * R;
-      const sy = cy + Math.sin(s.angle) * R;
-
-      const sg = cx_.createLinearGradient(sx, sy, ex, ey);
-      sg.addColorStop(0, `rgba(220, 150, 60, ${s.opacity * pulse})`);
-      sg.addColorStop(1,  'rgba(0,0,0,0)');
-
-      cx_.beginPath();
-      cx_.moveTo(sx, sy);
-      cx_.lineTo(ex, ey);
-      cx_.strokeStyle = sg;
-      cx_.lineWidth   = s.w * pulse;
-      cx_.lineCap     = 'round';
-      cx_.stroke();
+    // ─── 2. Corona streamers ───
+    for (const s of STREAMERS) {
+      s.ang += s.drift * dt;
+      const p  = 0.62 + 0.38 * Math.sin(simT * 1.1 + s.phase);
+      const bx = CX + Math.cos(s.ang) * (R - 3);
+      const by = CY + Math.sin(s.ang) * (R - 3);
+      const ex = CX + Math.cos(s.ang) * (R + s.len * p);
+      const ey = CY + Math.sin(s.ang) * (R + s.len * p);
+      const sg = ctx.createLinearGradient(bx, by, ex, ey);
+      sg.addColorStop(0,    `rgba(232, 162, 68, ${s.alpha * p})`);
+      sg.addColorStop(0.35, `rgba(205, 115, 42, ${s.alpha * p * 0.5})`);
+      sg.addColorStop(1,    'rgba(0,0,0,0)');
+      ctx.beginPath();
+      ctx.moveTo(bx, by);
+      ctx.lineTo(ex, ey);
+      ctx.strokeStyle = sg;
+      ctx.lineWidth = s.w * p;
+      ctx.lineCap = 'round';
+      ctx.stroke();
     }
 
-    // — Prominences (arcs) —
-    for (const p of proms) {
-      p.angle += p.speed;
-      const pulse = 0.65 + 0.35 * Math.sin(t * 1.8 + p.phase);
-      const pR = R + p.h * pulse;
-      const a1 = p.angle - 0.05;
-      const a2 = p.angle;
-      const a3 = p.angle + 0.05;
+    // ─── 3. H-α loop prominences (pinkish-red, arch shape) ───
+    for (const p of PROMS) {
+      p.ang += p.drift * dt;
+      const u  = 0.72 + 0.28 * Math.sin(simT * 0.65 + p.phase);
+      const h  = p.h  * u;
+      const sp = p.span * u;
+      const a  = p.ang;
 
-      cx_.beginPath();
-      cx_.moveTo(cx + Math.cos(a1) * R, cy + Math.sin(a1) * R);
-      cx_.quadraticCurveTo(
-        cx + Math.cos(a2) * pR, cy + Math.sin(a2) * pR,
-        cx + Math.cos(a3) * R,  cy + Math.sin(a3) * R
+      // Two foot-points on limb
+      const f1x = CX + Math.cos(a - sp) * R,  f1y = CY + Math.sin(a - sp) * R;
+      const f2x = CX + Math.cos(a + sp) * R,  f2y = CY + Math.sin(a + sp) * R;
+      // Apex
+      const apx = CX + Math.cos(a) * (R + h), apy = CY + Math.sin(a) * (R + h);
+      // Bézier control points (smooth loop arch)
+      const c1x = CX + Math.cos(a - sp * 0.4) * (R + h * 0.85);
+      const c1y = CY + Math.sin(a - sp * 0.4) * (R + h * 0.85);
+      const c2x = CX + Math.cos(a + sp * 0.4) * (R + h * 0.85);
+      const c2y = CY + Math.sin(a + sp * 0.4) * (R + h * 0.85);
+
+      // H-α gradient: bright base → dimmer apex
+      const pg = ctx.createLinearGradient(
+        CX + Math.cos(a) * R, CY + Math.sin(a) * R, apx, apy
       );
-      cx_.strokeStyle = `rgba(245, 145, 55, ${0.45 * pulse})`;
-      cx_.lineWidth   = p.bw * 0.45 * pulse;
-      cx_.lineCap     = 'round';
-      cx_.stroke();
+      pg.addColorStop(0,    `rgba(245, 85, 72, ${p.alpha * u * 0.95})`);
+      pg.addColorStop(0.45, `rgba(220, 62, 55, ${p.alpha * u * 0.60})`);
+      pg.addColorStop(1,    `rgba(190, 44, 40, ${p.alpha * u * 0.15})`);
+
+      ctx.beginPath();
+      ctx.moveTo(f1x, f1y);
+      ctx.bezierCurveTo(c1x, c1y, apx, apy, apx, apy);
+      ctx.bezierCurveTo(apx, apy, c2x, c2y, f2x, f2y);
+      ctx.strokeStyle = pg;
+      ctx.lineWidth   = 3.2 + u * 2.2;
+      ctx.lineCap = ctx.lineJoin = 'round';
+      ctx.stroke();
     }
 
-    // — Photosphere (limb darkening) —
-    const dg = cx_.createRadialGradient(cx - R * 0.18, cy - R * 0.18, 0, cx, cy, R);
-    dg.addColorStop(0,    '#fff8e2');
-    dg.addColorStop(0.28, '#ffd890');
-    dg.addColorStop(0.55, '#f0a048');
-    dg.addColorStop(0.78, '#c85820');
-    dg.addColorStop(0.93, '#7a1c06');
-    dg.addColorStop(1,    '#120200');
+    // ─── 4. Photosphere — realistic limb darkening ───
+    // Center 5778 K (white-yellow) → limb ~4400 K (orange-red)
+    const dg = ctx.createRadialGradient(CX - R * 0.1, CY - R * 0.1, 0, CX, CY, R);
+    dg.addColorStop(0,    '#fff9e4');  // 5800 K — white-yellow
+    dg.addColorStop(0.25, '#ffe07c');  // 5400 K — golden
+    dg.addColorStop(0.52, '#f2a840');  // 5000 K — orange-yellow
+    dg.addColorStop(0.76, '#cc5c16');  // 4400 K — orange-red
+    dg.addColorStop(0.92, '#7c1c05');  // 4000 K — deep red limb
+    dg.addColorStop(1,    '#0d0100');
+    ctx.beginPath();
+    ctx.arc(CX, CY, R, 0, PI2);
+    ctx.fillStyle = dg;
+    ctx.fill();
 
-    cx_.beginPath();
-    cx_.arc(cx, cy, R, 0, 6.283);
-    cx_.fillStyle = dg;
-    cx_.fill();
+    // ─── 5. Surface features — clip to disk ───
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(CX, CY, R * 0.997, 0, PI2);
+    ctx.clip();
 
-    // — Surface granulation —
-    cx_.save();
-    cx_.beginPath();
-    cx_.arc(cx, cy, R * 0.93, 0, 6.283);
-    cx_.clip();
-
-    for (const cell of cells) {
-      const dist = Math.sqrt(cell.ox * cell.ox + cell.oy * cell.oy);
-      if (dist > R * 0.88) continue;
-      const a = 0.055 * (0.5 + 0.5 * Math.sin(t * cell.speed + cell.phase));
-      const fg = cx_.createRadialGradient(
-        cx + cell.ox, cy + cell.oy, 0,
-        cx + cell.ox, cy + cell.oy, cell.r
+    // Granulation: bright convection cell centres, dark intergranular lanes
+    for (const cell of CELLS) {
+      const d = Math.hypot(cell.ox, cell.oy);
+      if (d > R * 0.91) continue;
+      const limbF = 1 - (d / R) ** 2.2;   // fades toward limb (less visible there)
+      const br    = limbF * 0.068 * (0.5 + 0.5 * Math.sin(simT * cell.speed + cell.phase));
+      const fg = ctx.createRadialGradient(
+        CX + cell.ox, CY + cell.oy, 0,
+        CX + cell.ox, CY + cell.oy, cell.r
       );
-      fg.addColorStop(0, `rgba(255, 245, 180, ${a})`);
-      fg.addColorStop(1, 'rgba(0,0,0,0)');
-      cx_.beginPath();
-      cx_.arc(cx + cell.ox, cy + cell.oy, cell.r, 0, 6.283);
-      cx_.fillStyle = fg;
-      cx_.fill();
+      fg.addColorStop(0,   `rgba(255, 248, 192, ${br})`);       // bright upwelling
+      fg.addColorStop(0.65, `rgba(195, 145, 52, ${br * 0.28})`); // darker lane boundary
+      fg.addColorStop(1,    'rgba(0,0,0,0)');
+      ctx.beginPath();
+      ctx.arc(CX + cell.ox, CY + cell.oy, cell.r, 0, PI2);
+      ctx.fillStyle = fg;
+      ctx.fill();
     }
-    cx_.restore();
+
+    // Sunspots — umbra + penumbra with differential rotation + foreshortening
+    for (let i = 0; i < SPOTS.length; i++) {
+      const s   = SPOTS[i];
+      // Normalise longitude to −π…π relative to central meridian
+      const lon = ((spotLons[i] % PI2) + PI2) % PI2;
+      const lonRel = lon > Math.PI ? lon - PI2 : lon;
+      const { px, py, z } = project(lonRel, s.lat);
+      if (z < 0.03) continue;   // behind or on far limb
+
+      // Foreshortening: compress the spot ellipse in the radial direction
+      const radAngle = Math.atan2(py - CY, px - CX);
+
+      ctx.save();
+      ctx.translate(px, py);
+      ctx.rotate(radAngle);   // orient so x-axis points radially outward
+      ctx.scale(z, 1);        // compress radially (spot becomes ellipse near limb)
+
+      // Penumbra gradient: dark brownish outer ring (real colour ~4500 K)
+      const pg = ctx.createRadialGradient(0, 0, 0, 0, 0, s.rP);
+      pg.addColorStop(0,    'rgba(14,  6,  2, 0.97)');   // umbra centre — near-black
+      pg.addColorStop(0.40, 'rgba(26, 10,  3, 0.94)');   // umbra body
+      pg.addColorStop(0.60, 'rgba(62, 28,  9, 0.82)');   // inner penumbra — dark brown
+      pg.addColorStop(0.78, 'rgba(108, 52, 17, 0.58)');  // outer penumbra
+      pg.addColorStop(0.90, 'rgba(158, 82, 26, 0.28)');  // blend into photosphere
+      pg.addColorStop(1,    'rgba(200,120, 40, 0.00)');
+
+      ctx.beginPath();
+      ctx.arc(0, 0, s.rP, 0, PI2);
+      ctx.fillStyle = pg;
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    ctx.restore();  // end disk clip
 
     requestAnimationFrame(frame);
   }
 
-  frame();
+  requestAnimationFrame(frame);
 })();
 
 // ═══════════════════════════════════════════════
