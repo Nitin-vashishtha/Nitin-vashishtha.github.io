@@ -54,6 +54,51 @@
 
     .site-wrap { position: relative; z-index: 1; }
 
+    /* ── Reading progress bar ── */
+    #progress-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 0%;
+      height: 2px;
+      background: linear-gradient(90deg, var(--warm-dim), var(--warm), #f0b060);
+      z-index: 200;
+      transition: width 0.1s linear;
+      pointer-events: none;
+    }
+
+    /* ── Back-to-top button ── */
+    #back-to-top {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      width: 40px;
+      height: 40px;
+      background: rgba(11,15,28,0.85);
+      border: 1px solid var(--border-hi);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity 0.3s ease, transform 0.3s ease, border-color 0.3s ease;
+      z-index: 150;
+      backdrop-filter: blur(8px);
+      color: var(--text-2);
+      font-size: 1rem;
+      text-decoration: none;
+    }
+    #back-to-top.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    #back-to-top:hover {
+      border-color: var(--warm);
+      color: var(--warm);
+    }
+
     /* ── Nav ── */
     #nav {
       position: fixed;
@@ -82,6 +127,72 @@
       letter-spacing: 0.03em;
     }
     .nav-logo em { color: var(--warm); font-style: normal; }
+
+    /* ── Dark/light mode ── */
+    #theme-toggle {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      width: 34px;
+      height: 20px;
+      cursor: pointer;
+      position: relative;
+      transition: border-color var(--ease), background var(--ease);
+      flex-shrink: 0;
+    }
+    #theme-toggle::after {
+      content: '';
+      position: absolute;
+      top: 3px; left: 3px;
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      background: var(--text-2);
+      transition: transform 0.3s ease, background 0.3s ease;
+    }
+    body.light #theme-toggle::after {
+      transform: translateX(14px);
+      background: var(--warm);
+    }
+    body.light {
+      --bg-0: #f0ede8; --bg-1: #e8e4de; --bg-2: #ddd8d0;
+      --bg-3: #d0cbc2; --border: #c8c0b4; --border-hi: #b0a898;
+      --text-1: #1a1410; --text-2: #5a4e44; --text-3: #8a7a6e;
+      --warm-glow: rgba(196,124,56,0.08);
+    }
+    body.light section { background: rgba(240,237,232,0.88); }
+    body.light #nav.scrolled { background: rgba(240,237,232,0.92); }
+
+    /* ── Solar activity badge ── */
+    #solar-badge {
+      display: none;
+      align-items: center;
+      gap: 0.45rem;
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: var(--text-2);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 0.2rem 0.7rem;
+      cursor: pointer;
+      transition: border-color var(--ease), color var(--ease);
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    #solar-badge.visible { display: flex; }
+    #solar-badge:hover { border-color: var(--warm-dim); color: var(--text-1); }
+    .badge-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--text-3);
+      animation: badgePulse 2s ease-in-out infinite;
+    }
+    .badge-dot.calm   { background: #5a9e7a; }
+    .badge-dot.active { background: var(--warm); }
+    .badge-dot.storm  { background: #e05050; }
+    @keyframes badgePulse {
+      0%,100% { opacity: 1; transform: scale(1); }
+      50%      { opacity: 0.5; transform: scale(0.75); }
+    }
 
     .nav-links {
       display: flex;
@@ -115,6 +226,57 @@
     .nav-links a.active { color: var(--text-1); }
     .nav-links a:hover::after,
     .nav-links a.active::after { width: 100%; }
+
+    /* ── Hamburger ── */
+    .nav-burger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      padding: 4px;
+      background: none;
+      border: none;
+    }
+    .nav-burger span {
+      display: block;
+      width: 22px;
+      height: 2px;
+      background: var(--text-2);
+      border-radius: 2px;
+      transition: transform 0.3s ease, opacity 0.3s ease, background 0.3s ease;
+    }
+    .nav-burger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); background: var(--warm); }
+    .nav-burger.open span:nth-child(2) { opacity: 0; }
+    .nav-burger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); background: var(--warm); }
+
+    @media (max-width: 780px) {
+      .nav-burger { display: flex; }
+      .nav-links {
+        position: fixed;
+        top: 0; right: 0;
+        height: 100vh;
+        width: 240px;
+        background: rgba(7, 9, 15, 0.97);
+        backdrop-filter: blur(18px);
+        border-left: 1px solid var(--border);
+        flex-direction: column;
+        justify-content: center;
+        align-items: flex-start;
+        gap: 0;
+        padding: 2rem;
+        transform: translateX(100%);
+        transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+        z-index: 99;
+      }
+      .nav-links.open { transform: translateX(0); }
+      .nav-links li { width: 100%; }
+      .nav-links a {
+        display: block;
+        padding: 0.85rem 0;
+        font-size: 0.9rem;
+        border-bottom: 1px solid var(--border);
+      }
+    }
 
     /* ── Hero ── */
     #hero {
@@ -256,7 +418,7 @@
     }
 
     /* ── Section commons ── */
-    section { padding: 5.5rem 2.5rem; background: rgba(7,9,15,0.88); }
+    section { padding: 5.5rem 2.5rem; background: rgba(7,9,15,0.78); }
 
     .container {
       max-width: 1020px;
@@ -1064,6 +1226,7 @@
 
     .pub-badge.inprep { border-color: var(--warm-dim); color: var(--warm-dim); }
     .pub-badge.proceedings { border-color: var(--cool-dim); color: var(--cool-dim); }
+    .pub-badge.cited { border-color: #3a6644; color: #5a9e7a; }
 
     .pub-doi {
       font-family: var(--mono);
@@ -1151,6 +1314,164 @@
     }
 
     .pub-index-links a:hover { color: var(--warm); }
+    .pub-cv-download {
+      margin-left: auto;
+      background: rgba(196,124,56,0.10);
+      border: 1px solid var(--warm-dim);
+      border-radius: 6px;
+      padding: 0.25rem 0.85rem;
+      color: var(--warm) !important;
+      transition: background var(--ease), border-color var(--ease) !important;
+    }
+    .pub-cv-download:hover { background: rgba(196,124,56,0.22) !important; border-color: var(--warm) !important; }
+
+    /* ── Research timeline ── */
+    .rtl {
+      position: relative;
+      padding-left: 2rem;
+    }
+    .rtl::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 8px;
+      bottom: 8px;
+      width: 1px;
+      background: var(--border);
+    }
+    .rtl-item {
+      position: relative;
+      display: grid;
+      grid-template-columns: 70px 1fr;
+      gap: 1rem;
+      padding: 1.2rem 0;
+    }
+    .rtl-dot {
+      position: absolute;
+      left: -2.3rem;
+      top: 1.5rem;
+      width: 9px; height: 9px;
+      border-radius: 50%;
+      background: var(--border-hi);
+      border: 2px solid var(--bg-0);
+    }
+    .rtl-dot-warm { background: var(--warm); }
+    .rtl-year {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--text-3);
+      padding-top: 0.18rem;
+    }
+    .rtl-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-1);
+      margin-bottom: 0.2rem;
+    }
+    .rtl-sub {
+      font-size: 0.82rem;
+      color: var(--warm-dim);
+      margin-bottom: 0.3rem;
+      font-style: italic;
+    }
+    .rtl-desc {
+      font-size: 0.83rem;
+      color: var(--text-2);
+      line-height: 1.7;
+    }
+
+    /* ── Collaborators map ── */
+    .map-wrap { margin-top: 0.5rem; }
+    .collab-map-svg-wrap {
+      position: relative;
+      width: 100%;
+      border-radius: var(--r);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .collab-map-img {
+      width: 100%;
+      display: block;
+      filter: saturate(0.12) brightness(0.35) sepia(0.4);
+      opacity: 0.7;
+    }
+    .collab-dot {
+      position: absolute;
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--warm);
+      transform: translate(-50%, -50%);
+      cursor: default;
+      box-shadow: 0 0 0 3px rgba(196,124,56,0.25);
+      transition: box-shadow 0.2s ease, transform 0.2s ease;
+    }
+    .collab-dot-alt { background: var(--cool); box-shadow: 0 0 0 3px rgba(78,141,181,0.25); }
+    .collab-dot:hover { transform: translate(-50%,-50%) scale(1.5); box-shadow: 0 0 0 6px rgba(196,124,56,0.35); }
+    .collab-dot-alt:hover { box-shadow: 0 0 0 6px rgba(78,141,181,0.35); }
+    .collab-label {
+      position: absolute;
+      left: 14px; top: -4px;
+      white-space: nowrap;
+      font-family: var(--mono);
+      font-size: 0.62rem;
+      color: var(--text-2);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      background: rgba(7,9,15,0.82);
+      padding: 1px 5px;
+      border-radius: 3px;
+    }
+    .collab-dot:hover .collab-label { opacity: 1; }
+    .collab-dot-alt:hover .collab-label { opacity: 1; }
+
+    /* ── Talks ── */
+    #talks { border-top: 1px solid var(--border); }
+    .talks-list { display: flex; flex-direction: column; gap: 0; }
+    .talk-item {
+      display: grid;
+      grid-template-columns: 60px 1fr;
+      gap: 1.5rem;
+      padding: 1.4rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .talk-year {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--text-3);
+      padding-top: 0.2rem;
+    }
+    .talk-title {
+      font-size: 0.95rem;
+      color: var(--text-1);
+      font-weight: 500;
+      margin-bottom: 0.3rem;
+    }
+    .talk-venue {
+      font-size: 0.82rem;
+      color: var(--text-2);
+      margin-bottom: 0.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .talk-loc {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--text-3);
+    }
+    .talk-type {
+      font-family: var(--mono);
+      font-size: 0.62rem;
+      padding: 0.12rem 0.5rem;
+      border-radius: 100px;
+      border: 1px solid var(--border);
+      color: var(--text-3);
+    }
+    .talk-type.oral   { border-color: #2d5a7a; color: var(--cool); }
+    .talk-type.invited { border-color: var(--warm-dim); color: var(--warm); }
+    .talk-type.poster { border-color: var(--border); color: var(--text-3); }
 
     /* ── Responsive ── */
     @media (max-width: 820px) {
@@ -1171,6 +1492,12 @@
 </head>
 <body>
 
+<!-- Reading progress bar -->
+<div id="progress-bar"></div>
+
+<!-- Back to top -->
+<a id="back-to-top" href="#hero" title="Back to top">↑</a>
+
 <!-- Starfield -->
 <canvas id="starfield"></canvas>
 
@@ -1182,15 +1509,25 @@
   <!-- ═══ NAV ═══ -->
   <nav id="nav">
     <a href="#hero" class="nav-logo">N<em>.</em>Vashishtha</a>
-    <ul class="nav-links">
+    <ul class="nav-links" id="nav-links">
       <li><a href="#about">About</a></li>
       <li><a href="#research">Research</a></li>
       <li><a href="#timeline">CV</a></li>
+      <li><a href="#career-timeline">Timeline</a></li>
       <li><a href="#publications">Papers</a></li>
+      <li><a href="#talks">Talks</a></li>
       <li><a href="#observatory">Observatory</a></li>
       <li><a href="#space-weather">Space Weather</a></li>
       <li><a href="#contact">Contact</a></li>
     </ul>
+    <button id="theme-toggle" title="Toggle light/dark mode" aria-label="Toggle theme"></button>
+    <a id="solar-badge" href="#space-weather" title="Live solar activity">
+      <span class="badge-dot" id="badge-dot"></span>
+      <span id="badge-text">—</span>
+    </a>
+    <button class="nav-burger" id="nav-burger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
   </nav>
 
   <!-- ═══ HERO ═══ -->
@@ -1327,6 +1664,32 @@
     </div>
   </section>
 
+  <!-- ═══ COLLABORATORS MAP ═══ -->
+  <section id="collab-map" style="padding: 3rem 2.5rem; border-top: 1px solid var(--border);">
+    <div class="container">
+      <span class="sec-eyebrow fi">Global Network</span>
+      <h2 class="sec-title fi d1">Collaborators</h2>
+      <div class="sec-rule fi d2"></div>
+      <div class="map-wrap fi d3">
+        <!-- Equirectangular world map — dots placed by lon/lat percentage -->
+        <div class="collab-map-svg-wrap">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/8/8f/Whole_world_-_land_and_oceans.jpg"
+               alt="World map" class="collab-map-img" />
+          <!-- Institution dots: left% = (lon+180)/360*100, top% = (90-lat)/180*100 -->
+          <div class="collab-dot" style="left:76.9%;top:30.6%" title="ARIES, Nainital, India (home)"><span class="collab-label">ARIES, India</span></div>
+          <div class="collab-dot" style="left:76.4%;top:33.9%" title="IIA, Bengaluru, India"><span class="collab-label">IIA, India</span></div>
+          <div class="collab-dot" style="left:76.2%;top:31.4%" title="PRL, Ahmedabad, India"><span class="collab-label">PRL, India</span></div>
+          <div class="collab-dot collab-dot-alt" style="left:51.8%;top:28.5%" title="ROB, Brussels, Belgium"><span class="collab-label">ROB, Belgium</span></div>
+          <div class="collab-dot collab-dot-alt" style="left:51.7%;top:28.8%" title="KU Leuven, Belgium"><span class="collab-label">KU Leuven</span></div>
+          <div class="collab-dot collab-dot-alt" style="left:52.2%;top:23.1%" title="Kiepenheuer-Institut, Freiburg, Germany"><span class="collab-label">KIS, Germany</span></div>
+          <div class="collab-dot collab-dot-alt" style="left:50.3%;top:29.2%" title="Université Paris-Saclay, France"><span class="collab-label">Paris-Saclay</span></div>
+          <div class="collab-dot collab-dot-alt" style="left:24.9%;top:25.3%" title="NASA GSFC, Greenbelt, USA"><span class="collab-label">NASA GSFC</span></div>
+          <div class="collab-dot collab-dot-alt" style="left:27.6%;top:27.0%" title="University of Michigan, USA"><span class="collab-label">U. Michigan</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- ═══ RESEARCH ═══ -->
   <section id="research">
     <div class="container">
@@ -1415,6 +1778,77 @@
     </div>
   </section>
 
+  <!-- ═══ RESEARCH TIMELINE ═══ -->
+  <section id="career-timeline" style="border-top: 1px solid var(--border);">
+    <div class="container">
+      <span class="sec-eyebrow fi">Journey</span>
+      <h2 class="sec-title fi d1">Research Timeline</h2>
+      <div class="sec-rule fi d2"></div>
+      <div class="rtl fi d3">
+
+        <div class="rtl-item">
+          <div class="rtl-dot"></div>
+          <div class="rtl-year">2024–</div>
+          <div class="rtl-content">
+            <div class="rtl-title">Project Scientist–I</div>
+            <div class="rtl-sub">Aryabhatta Research Institute of Observational Sciences (ARIES), Nainital</div>
+            <div class="rtl-desc">Leading research on CME initiation mechanisms and heliospheric dynamics using MHD simulations and multi-wavelength observations.</div>
+          </div>
+        </div>
+
+        <div class="rtl-item">
+          <div class="rtl-dot"></div>
+          <div class="rtl-year">2022–24</div>
+          <div class="rtl-content">
+            <div class="rtl-title">Post-Doctoral Researcher</div>
+            <div class="rtl-sub">Royal Observatory of Belgium (ROB), Brussels</div>
+            <div class="rtl-desc">Worked on CME polarimetry, K-corona modeling, and the PROBA-3 / ASPIICS coronagraph mission preparation.</div>
+          </div>
+        </div>
+
+        <div class="rtl-item">
+          <div class="rtl-dot rtl-dot-warm"></div>
+          <div class="rtl-year">2025</div>
+          <div class="rtl-content">
+            <div class="rtl-title">Publication — ApJ</div>
+            <div class="rtl-sub">The Effect of Poloidal Magnetic Field and Helicity Injection in a Breakout CME</div>
+            <div class="rtl-desc">First demonstration of poloidal flux enhancement driving flux-rope formation in breakout eruptions.</div>
+          </div>
+        </div>
+
+        <div class="rtl-item">
+          <div class="rtl-dot rtl-dot-warm"></div>
+          <div class="rtl-year">2023</div>
+          <div class="rtl-content">
+            <div class="rtl-title">Publication — Front. Astron.</div>
+            <div class="rtl-sub">Exploring the Impact of Imaging Cadence on Inferring CME Kinematics</div>
+            <div class="rtl-desc">Quantified how cadence gaps in coronagraph imaging systematically bias CME speed and acceleration measurements.</div>
+          </div>
+        </div>
+
+        <div class="rtl-item">
+          <div class="rtl-dot"></div>
+          <div class="rtl-year">2018–22</div>
+          <div class="rtl-content">
+            <div class="rtl-title">Ph.D. in Solar Physics</div>
+            <div class="rtl-sub">Aryabhatta Research Institute of Observational Sciences (ARIES) / Kumaun University</div>
+            <div class="rtl-desc">Thesis on CME initiation and kinematics using combined observational analysis and MHD simulations.</div>
+          </div>
+        </div>
+
+        <div class="rtl-item">
+          <div class="rtl-dot"></div>
+          <div class="rtl-year">2015–18</div>
+          <div class="rtl-content">
+            <div class="rtl-title">M.Sc. Physics</div>
+            <div class="rtl-sub">H.N.B. Garhwal University, Srinagar</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
   <!-- ═══ PUBLICATIONS ═══ -->
   <section id="publications">
     <div class="container">
@@ -1424,7 +1858,7 @@
 
       <div class="pub-list">
 
-        <div class="pub-card fi">
+        <div class="pub-card fi" data-doi="10.3847/1538-4357/adff54">
           <div class="pub-num">01 · 2025</div>
           <div class="pub-title">The Effect of Poloidal Magnetic Field and Helicity Injection in a Breakout Coronal Mass Ejection</div>
           <div class="pub-authors"><strong>Vashishtha, N.</strong>, Pant, V., Talpeanu, D. C., Banerjee, D., Rastogi, Shantanu</div>
@@ -1435,7 +1869,7 @@
           </div>
         </div>
 
-        <div class="pub-card fi d1">
+        <div class="pub-card fi d1" data-doi="10.3389/fspas.2023.1232197">
           <div class="pub-num">02 · 2023</div>
           <div class="pub-title">Exploring the Impact of Imaging Cadence on Inferring CME Kinematics</div>
           <div class="pub-authors"><strong>Vashishtha, N.</strong>, Majumdar, S., Patel, R., Pant, V., Banerjee, D.</div>
@@ -1446,7 +1880,7 @@
           </div>
         </div>
 
-        <div class="pub-card fi d2">
+        <div class="pub-card fi d2" data-doi="10.3847/2041-8213/ad5da5">
           <div class="pub-num">03 · 2024</div>
           <div class="pub-title">Probing Velocity Dispersion inside CMEs in Inner Corona: New Insights on CME Initiation</div>
           <div class="pub-authors">Majumdar, S., D'Huys, E., Mierla, M., <strong>Vashishtha, N.</strong> et al.</div>
@@ -1491,10 +1925,50 @@
       </div>
 
       <div class="pub-index-links fi">
-        <a href="https://orcid.org/" target="_blank">ORCID ↗</a>
-        <a href="https://scholar.google.com/" target="_blank">Google Scholar ↗</a>
-        <a href="https://ui.adsabs.harvard.edu/" target="_blank">NASA ADS ↗</a>
-        <a href="https://arxiv.org/" target="_blank">arXiv ↗</a>
+        <a href="https://orcid.org/0000-0001-8832-1688" target="_blank">ORCID ↗</a>
+        <a href="https://scholar.google.com/citations?user=nitin-vashishtha" target="_blank">Google Scholar ↗</a>
+        <a href="https://ui.adsabs.harvard.edu/search/q=author%3AVashishtha%2CN" target="_blank">NASA ADS ↗</a>
+        <a href="https://arxiv.org/search/?searchtype=author&query=Vashishtha+N" target="_blank">arXiv ↗</a>
+        <a href="cv.pdf" download class="pub-cv-download">↓ Download CV (PDF)</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ TALKS ═══ -->
+  <section id="talks">
+    <div class="container">
+      <span class="sec-eyebrow fi">Conferences &amp; Seminars</span>
+      <h2 class="sec-title fi d1">Talks &amp; Presentations</h2>
+      <div class="sec-rule fi d2"></div>
+      <div class="talks-list fi d3">
+
+        <div class="talk-item">
+          <div class="talk-year">2024</div>
+          <div class="talk-body">
+            <div class="talk-title">The Role of Helicity Injection and Poloidal Magnetic Field in a Breakout CME</div>
+            <div class="talk-venue">IAU Symposium 388 — Solar and Stellar Coronal Mass Ejections <span class="talk-type oral">Contributed Talk</span></div>
+            <div class="talk-loc">Prague, Czech Republic</div>
+          </div>
+        </div>
+
+        <div class="talk-item">
+          <div class="talk-year">2023</div>
+          <div class="talk-body">
+            <div class="talk-title">Exploring the Impact of Imaging Cadence on CME Kinematics</div>
+            <div class="talk-venue">AOGS Annual Meeting <span class="talk-type poster">Poster</span></div>
+            <div class="talk-loc">Singapore</div>
+          </div>
+        </div>
+
+        <div class="talk-item">
+          <div class="talk-year">2023</div>
+          <div class="talk-body">
+            <div class="talk-title">CME Kinematics and Space Weather Implications</div>
+            <div class="talk-venue">ARIES Internal Seminar <span class="talk-type invited">Invited Seminar</span></div>
+            <div class="talk-loc">Nainital, India</div>
+          </div>
+        </div>
+
       </div>
     </div>
   </section>
@@ -1753,6 +2227,13 @@
   function lerp(a, b, t) { return a + (b - a) * t; }
   function lerpLog(a, b, t) { return Math.exp(lerp(Math.log(a), Math.log(b), t)); }
   function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+  // ── Cursor parallax ──────────────────────────
+  let mouseX = 0, mouseY = 0, parallaxX = 0, parallaxY = 0;
+  window.addEventListener('mousemove', e => {
+    mouseX = (e.clientX / window.innerWidth  - 0.5) * 2;  // -1 to +1
+    mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+  });
 
   // ── Solar disk physics ───────────────────────
   const EQ_PERIOD = 10; // anim-seconds per full equatorial rotation
@@ -2104,13 +2585,37 @@
       if (!st) continue;
       const pos = orbitPos(st.elem, dtYr);
       drawBody(pos.x, pos.y, auPx, body.dotR, body.color, body.label, false, null);
+      // Day/night terminator on Earth
+      if (body.naif === '399') {
+        const sx = CX + pos.x * auPx, sy = CY - pos.y * auPx;
+        const toSunAngle = Math.atan2(-pos.y, -pos.x); // direction from Earth to Sun
+        const dr = body.dotR + 1;
+        ctx.save();
+        ctx.beginPath(); ctx.arc(sx, sy, dr, 0, PI2); ctx.clip();
+        // Night side: dark half away from Sun
+        const ng = ctx.createLinearGradient(
+          sx + Math.cos(toSunAngle)*dr, sy + Math.sin(toSunAngle)*dr,
+          sx - Math.cos(toSunAngle)*dr, sy - Math.sin(toSunAngle)*dr
+        );
+        ng.addColorStop(0,   'rgba(0,0,0,0)');
+        ng.addColorStop(0.5, 'rgba(0,0,0,0)');
+        ng.addColorStop(0.5, 'rgba(0,0,30,0.72)');
+        ng.addColorStop(1,   'rgba(0,0,30,0.72)');
+        ctx.fillStyle = ng;
+        ctx.fillRect(sx-dr, sy-dr, dr*2, dr*2);
+        ctx.restore();
+      }
     }
 
-    // Spacecraft — dashed orbits then dots
+    // Spacecraft — dashed orbits, trails, then dots
+    updateTrails(dtYr);
     for (const sc of SPACECRAFT) {
       const st = bodyState[sc.naif];
       if (!st) continue;
       drawOrbitPath(st.elem, auPx, rgba(sc.color, 0.30), 0.6, [4, 9]);
+    }
+    for (const sc of SPACECRAFT) {
+      drawTrail(sc.naif, sc.color, auPx);
     }
     for (const sc of SPACECRAFT) {
       const st = bodyState[sc.naif];
@@ -2137,6 +2642,109 @@
     ctx.globalAlpha = 1;
   }
 
+  // ── Solar flare events ───────────────────────
+  // Fetch latest significant flares and animate bright arcs on the limb
+  let activeFlares = []; // [{angle, class, peakTime, life}]
+
+  (async function() {
+    try {
+      const res  = await fetch('https://services.swpc.noaa.gov/json/goes/primary/xray-flares-7-day.json');
+      const data = await res.json();
+      // Filter to M or X class flares in last 24h
+      const cutoff = Date.now() - 86400000;
+      const recent = data.filter(f => {
+        const cls = (f.max_class || '');
+        return (cls.startsWith('M') || cls.startsWith('X')) &&
+               new Date(f.max_time).getTime() > cutoff;
+      });
+      recent.forEach(f => {
+        activeFlares.push({
+          angle: Math.random() * Math.PI * 2,
+          cls:   f.max_class || 'M',
+          life:  0,   // animation time counter
+          isX:   (f.max_class || '').startsWith('X'),
+        });
+      });
+    } catch(_) {}
+  })();
+
+  function drawFlares(R) {
+    if (activeFlares.length === 0) return;
+    activeFlares.forEach(fl => {
+      fl.life += dtFrame;
+      const cycleT = fl.life % 4;       // 4-second flash cycle
+      const burst  = Math.max(0, 1 - cycleT / 0.6);  // sharp decay
+      if (burst < 0.01) return;
+      const span = (fl.isX ? 0.18 : 0.12) + burst * 0.08;
+      const h    = (fl.isX ? 55 : 32) + burst * 30;
+      const a    = fl.angle;
+      const f1x  = CX + Math.cos(a - span) * R, f1y = CY + Math.sin(a - span) * R;
+      const f2x  = CX + Math.cos(a + span) * R, f2y = CY + Math.sin(a + span) * R;
+      const apx  = CX + Math.cos(a) * (R + h),  apy = CY + Math.sin(a) * (R + h);
+      const c1x  = CX + Math.cos(a - span*0.3) * (R + h * 0.9);
+      const c1y  = CY + Math.sin(a - span*0.3) * (R + h * 0.9);
+      const c2x  = CX + Math.cos(a + span*0.3) * (R + h * 0.9);
+      const c2y  = CY + Math.sin(a + span*0.3) * (R + h * 0.9);
+      const col  = fl.isX ? `rgba(255,230,60,${burst*0.95})` : `rgba(255,160,40,${burst*0.85})`;
+      const pg   = ctx.createLinearGradient(CX + Math.cos(a)*R, CY + Math.sin(a)*R, apx, apy);
+      pg.addColorStop(0,   col);
+      pg.addColorStop(0.5, fl.isX ? `rgba(255,255,180,${burst*0.6})` : `rgba(255,200,80,${burst*0.5})`);
+      pg.addColorStop(1,   'rgba(255,255,200,0)');
+      ctx.save();
+      ctx.beginPath(); ctx.moveTo(f1x, f1y);
+      ctx.bezierCurveTo(c1x, c1y, apx, apy, apx, apy);
+      ctx.bezierCurveTo(apx, apy, c2x, c2y, f2x, f2y);
+      ctx.strokeStyle = pg;
+      ctx.lineWidth   = fl.isX ? 5 + burst * 4 : 3 + burst * 3;
+      ctx.lineCap = ctx.lineJoin = 'round';
+      ctx.shadowColor = fl.isX ? 'rgba(255,230,60,0.8)' : 'rgba(255,160,40,0.6)';
+      ctx.shadowBlur  = 12 * burst;
+      ctx.stroke();
+      ctx.restore();
+      // Flare class label at apex on first burst
+      if (burst > 0.5 && cycleT < 0.3) {
+        ctx.fillStyle = fl.isX ? 'rgba(255,240,100,0.9)' : 'rgba(255,200,80,0.85)';
+        ctx.font = '600 10px "JetBrains Mono"';
+        ctx.fillText(fl.cls, apx + 5, apy - 5);
+      }
+    });
+  }
+
+  // ── Spacecraft trail buffers ─────────────────
+  // Store the last N real-time positions so we can draw a fading arc
+  const TRAIL_LEN  = 80;   // number of history samples
+  const TRAIL_INTERVAL = 0.0003; // min years between samples (~2.6 hrs)
+  const trails = {}; // naif → [{x,y}, ...]
+  let lastTrailYr = 0;
+
+  function updateTrails(dtYr) {
+    if (dtYr - lastTrailYr < TRAIL_INTERVAL && lastTrailYr > 0) return;
+    lastTrailYr = dtYr;
+    for (const sc of SPACECRAFT) {
+      const st = bodyState[sc.naif];
+      if (!st) continue;
+      if (!trails[sc.naif]) trails[sc.naif] = [];
+      const pos = orbitPos(st.elem, dtYr);
+      trails[sc.naif].push({ x: pos.x, y: pos.y });
+      if (trails[sc.naif].length > TRAIL_LEN) trails[sc.naif].shift();
+    }
+  }
+
+  function drawTrail(naif, color, auPx) {
+    const pts = trails[naif];
+    if (!pts || pts.length < 2) return;
+    for (let i = 1; i < pts.length; i++) {
+      const a  = (i / pts.length) * 0.55;
+      const x1 = CX + pts[i-1].x * auPx, y1 = CY - pts[i-1].y * auPx;
+      const x2 = CX + pts[i].x   * auPx, y2 = CY - pts[i].y   * auPx;
+      ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2);
+      ctx.strokeStyle = rgba(color, a);
+      ctx.lineWidth = 1.2;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+    }
+  }
+
   // ── Main animation loop ──────────────────────
   let lastTs = null, simT = 0, dtFrame = 0;
 
@@ -2150,6 +2758,13 @@
     SPOTS.forEach((s, i) => { spotLons[i] += dtFrame * EQ_OMEGA * diffOmega(s.lat); });
     for (const s of STREAMERS) s.ang += s.drift * dtFrame;
     for (const p of PROMS)     p.ang += p.drift * dtFrame;
+
+    // Smooth parallax: lerp toward mouse position (only when on hero)
+    const parallaxStrength = 18 * (1 - easeIO(scrollP));
+    parallaxX += (mouseX * parallaxStrength - parallaxX) * dtFrame * 4;
+    parallaxY += (mouseY * parallaxStrength - parallaxY) * dtFrame * 4;
+    CX = W/2 + parallaxX;
+    CY = H/2 + parallaxY;
 
     ctx.clearRect(0, 0, W, H);
 
@@ -2185,7 +2800,9 @@
       ctx.beginPath(); ctx.arc(CX, CY, R, 0, PI2); ctx.fillStyle = dg2; ctx.fill();
     }
 
-    drawSolarDisk(R_max * (1 - p) + R_min * p, diskAlpha);
+    const curR = R_max * (1 - p) + R_min * p;
+    drawSolarDisk(curR, diskAlpha);
+    if (diskAlpha > 0.05) drawFlares(curR);
     drawSolarSystemView(auPx, sysAlpha);
 
     requestAnimationFrame(frame);
@@ -2212,6 +2829,86 @@
     links.forEach(a => {
       a.classList.toggle('active', a.getAttribute('href') === '#' + cur);
     });
+  }, { passive: true });
+})();
+
+// ═══════════════════════════════════════════════
+// 3c. DARK / LIGHT MODE TOGGLE
+// ═══════════════════════════════════════════════
+(function() {
+  const btn = document.getElementById('theme-toggle');
+  const pref = localStorage.getItem('theme');
+  if (pref === 'light') document.body.classList.add('light');
+  btn.addEventListener('click', () => {
+    document.body.classList.toggle('light');
+    localStorage.setItem('theme', document.body.classList.contains('light') ? 'light' : 'dark');
+  });
+})();
+
+// ═══════════════════════════════════════════════
+// 3a. SOLAR ACTIVITY BADGE
+// ═══════════════════════════════════════════════
+(async function() {
+  const badge = document.getElementById('solar-badge');
+  const dot   = document.getElementById('badge-dot');
+  const txt   = document.getElementById('badge-text');
+  try {
+    // Fetch latest Kp index
+    const res = await fetch('https://services.swpc.noaa.gov/json/planetary_k_index_1m.json');
+    const data = await res.json();
+    const latest = data[data.length - 1];
+    const kp = parseFloat(latest.estimated_kp || latest.kp_index || 0);
+
+    // Fetch latest flare (if any in last 7 days)
+    let flareLabel = '';
+    try {
+      const fRes = await fetch('https://services.swpc.noaa.gov/json/goes/primary/xray-flares-7-day.json');
+      const flares = await fRes.json();
+      if (flares.length) {
+        const latest = flares[flares.length - 1];
+        flareLabel = ' · ' + (latest.max_class || '');
+      }
+    } catch(_) {}
+
+    let level = 'calm', label = `Kp ${kp.toFixed(1)}`;
+    if (kp >= 5) { level = 'storm'; label = `G-storm Kp ${kp.toFixed(1)}`; }
+    else if (kp >= 3) { level = 'active'; label = `Active Kp ${kp.toFixed(1)}`; }
+    else { label = `Quiet Kp ${kp.toFixed(1)}`; }
+
+    dot.className = `badge-dot ${level}`;
+    txt.textContent = label + flareLabel;
+    badge.classList.add('visible');
+  } catch(_) {}
+})();
+
+// ═══════════════════════════════════════════════
+// 3b. MOBILE HAMBURGER NAV
+// ═══════════════════════════════════════════════
+(function() {
+  const burger = document.getElementById('nav-burger');
+  const links  = document.getElementById('nav-links');
+  burger.addEventListener('click', () => {
+    burger.classList.toggle('open');
+    links.classList.toggle('open');
+  });
+  // Close on link click
+  links.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+    burger.classList.remove('open');
+    links.classList.remove('open');
+  }));
+})();
+
+// ═══════════════════════════════════════════════
+// 4a. READING PROGRESS BAR + BACK-TO-TOP
+// ═══════════════════════════════════════════════
+(function() {
+  const bar = document.getElementById('progress-bar');
+  const btn = document.getElementById('back-to-top');
+  window.addEventListener('scroll', () => {
+    const doc = document.documentElement;
+    const pct = (doc.scrollTop / (doc.scrollHeight - doc.clientHeight)) * 100;
+    bar.style.width = pct + '%';
+    btn.classList.toggle('visible', doc.scrollTop > 400);
   }, { passive: true });
 })();
 
@@ -2492,6 +3189,31 @@ async function loadSpaceWeather() {
 
   const grid = document.getElementById('skills-grid');
   if (grid) obs.observe(grid);
+})();
+
+// ═══════════════════════════════════════════════
+// 8. CITATION COUNTS (CrossRef — public, no key)
+// ═══════════════════════════════════════════════
+(async function() {
+  const cards = document.querySelectorAll('.pub-card[data-doi]');
+  await Promise.allSettled(Array.from(cards).map(async card => {
+    const doi = card.dataset.doi;
+    try {
+      const r = await fetch(`https://api.crossref.org/works/${encodeURIComponent(doi)}?select=is-referenced-by-count`);
+      const d = await r.json();
+      const n = d?.message?.['is-referenced-by-count'];
+      if (typeof n === 'number') {
+        const footer = card.querySelector('.pub-footer');
+        if (footer) {
+          const badge = document.createElement('span');
+          badge.className = 'pub-badge cited';
+          badge.title = 'Citations (CrossRef)';
+          badge.textContent = `${n} cited`;
+          footer.prepend(badge);
+        }
+      }
+    } catch(_) {}
+  }));
 })();
 
 // ═══════════════════════════════════════════════
