@@ -48,7 +48,7 @@
     #starfield {
       position: fixed;
       inset: 0;
-      z-index: 0;
+      z-index: -1;
       pointer-events: none;
     }
 
@@ -126,18 +126,14 @@
       text-align: center;
       padding: 7rem 2rem 5rem;
       position: relative;
-      overflow: hidden;
     }
 
     #solar-canvas {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: min(88vw, 88vh);
-      height: min(88vw, 88vh);
-      max-width: 820px;
-      max-height: 820px;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
       z-index: 0;
       pointer-events: none;
     }
@@ -260,7 +256,7 @@
     }
 
     /* ── Section commons ── */
-    section { padding: 5.5rem 2.5rem; }
+    section { padding: 5.5rem 2.5rem; background: rgba(7,9,15,0.88); }
 
     .container {
       max-width: 1020px;
@@ -1178,6 +1174,9 @@
 <!-- Starfield -->
 <canvas id="starfield"></canvas>
 
+<!-- Solar system background canvas (fixed, full viewport) -->
+<canvas id="solar-canvas"></canvas>
+
 <div class="site-wrap">
 
   <!-- ═══ NAV ═══ -->
@@ -1196,7 +1195,6 @@
 
   <!-- ═══ HERO ═══ -->
   <section id="hero">
-    <canvas id="solar-canvas" width="820" height="820"></canvas>
 
     <div class="hero-content">
       <h1 class="hero-name">Nitin Vashishtha</h1>
@@ -1721,71 +1719,78 @@
 })();
 
 // ═══════════════════════════════════════════════
-// 2. ANIMATED SOLAR DISK — physically realistic
-//    · Differential rotation (Snodgrass 1990)
-//    · Sunspots with umbra/penumbra + foreshortening
-//    · H-α loop prominences at limb
-//    · Granulation (convection cells)
-//    · Limb darkening (5778K center → 4400K limb)
+// 2. SOLAR SYSTEM BACKGROUND — scroll-driven zoom
+//    Hero: close-up solar disk (differential rotation,
+//          sunspots, H-α prominences, granulation)
+//    Scroll down: logarithmic zoom-out reveals the
+//    inner solar system with real-time spacecraft
+//    positions from JPL Horizons, orbiting continuously.
 // ═══════════════════════════════════════════════
-(function() {
+(function () {
   const c   = document.getElementById('solar-canvas');
   const ctx = c.getContext('2d');
-  const W = 820, H = 820, CX = 410, CY = 410, R = 210;
   const PI2 = Math.PI * 2;
   const DEG = Math.PI / 180;
 
-  // Equatorial rotation period (animation seconds per full rotation)
-  const EQ_PERIOD = 10;
+  // ── Viewport sizing ──────────────────────────
+  let W, H, CX, CY;
+  function resize() {
+    W = c.width  = window.innerWidth;
+    H = c.height = window.innerHeight;
+    CX = W / 2; CY = H / 2;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  // ── Scroll progress (0 = hero top, 1 = hero bottom) ──
+  let scrollP = 0;
+  window.addEventListener('scroll', () => {
+    const heroH = document.getElementById('hero').offsetHeight;
+    scrollP = Math.min(1, Math.max(0, window.scrollY / heroH));
+  }, { passive: true });
+
+  function easeIO(t) { return t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2; }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function lerpLog(a, b, t) { return Math.exp(lerp(Math.log(a), Math.log(b), t)); }
+  function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+  // ── Solar disk physics ───────────────────────
+  const EQ_PERIOD = 10; // anim-seconds per full equatorial rotation
   const EQ_OMEGA  = PI2 / EQ_PERIOD;
 
-  // Snodgrass (1990) differential rotation — normalized to equatorial = 1
-  // ω(b) = (14.713 − 2.396·sin²b − 1.787·sin⁴b) / 14.713
   function diffOmega(lat) {
     const s2 = Math.sin(lat) ** 2;
     return (14.713 - 2.396 * s2 - 1.787 * s2 * s2) / 14.713;
   }
 
-  // Spherical → 2D disk projection
-  // lon = longitude relative to central meridian, lat = heliographic latitude
-  function project(lon, lat) {
+  function project(lon, lat, R) {
     const x =  Math.cos(lat) * Math.sin(lon);
     const y = -Math.sin(lat);
-    const z =  Math.cos(lat) * Math.cos(lon);   // >0 = front hemisphere
+    const z =  Math.cos(lat) * Math.cos(lon);
     return { px: CX + x * R, py: CY + y * R, z };
   }
 
-  // ── Sunspot groups (fixed lat, longitude drifts via differential rotation) ──
-  // rU = umbra radius, rP = penumbra radius (canvas px at disk centre)
   const SPOTS = [
-    { lat:  18*DEG, rU: 15, rP: 26 },  // AR1 – leading spot, N hemi
-    { lat:  14*DEG, rU:  8, rP: 15 },  // AR1 – follower
-    { lat: -22*DEG, rU: 19, rP: 32 },  // AR2 – leading spot, S hemi
-    { lat: -17*DEG, rU: 10, rP: 17 },  // AR2 – follower
-    { lat:  10*DEG, rU: 13, rP: 21 },  // isolated spot N
-    { lat:  -6*DEG, rU:  7, rP: 13 },  // isolated spot S
-    { lat:  28*DEG, rU: 10, rP: 18 },  // high-latitude N
-    { lat: -32*DEG, rU:  7, rP: 13 },  // high-latitude S
+    { lat:  18*DEG, rU: 15, rP: 26 },
+    { lat:  14*DEG, rU:  8, rP: 15 },
+    { lat: -22*DEG, rU: 19, rP: 32 },
+    { lat: -17*DEG, rU: 10, rP: 17 },
+    { lat:  10*DEG, rU: 13, rP: 21 },
+    { lat:  -6*DEG, rU:  7, rP: 13 },
+    { lat:  28*DEG, rU: 10, rP: 18 },
+    { lat: -32*DEG, rU:  7, rP: 13 },
   ];
+  const spotLons = [15,28,188,200,98,295,340,160].map(d => d * DEG);
 
-  // Starting longitudes spread around the disk
-  const spotLons = [
-    15*DEG, 28*DEG, 188*DEG, 200*DEG,
-    98*DEG, 295*DEG, 340*DEG, 160*DEG,
-  ];
-
-  // ── H-α loop prominences at the limb ──
-  // pinkish-red (Hα 656 nm), arch shape, slow drift + undulation
   const PROMS = Array.from({ length: 7 }, (_, i) => ({
-    ang:    (i / 7) * PI2 + (Math.random() - 0.5) * 0.6,
-    h:      28 + Math.random() * 48,    // arch height (px)
-    span:   0.055 + Math.random() * 0.07, // half-angle span at limb
-    drift:  (Math.random() - 0.5) * 0.009,
-    phase:  Math.random() * PI2,
-    alpha:  0.55 + Math.random() * 0.35,
+    ang:   (i / 7) * PI2 + (Math.random() - 0.5) * 0.6,
+    h:     28 + Math.random() * 48,
+    span:  0.055 + Math.random() * 0.07,
+    drift: (Math.random() - 0.5) * 0.009,
+    phase: Math.random() * PI2,
+    alpha: 0.55 + Math.random() * 0.35,
   }));
 
-  // ── Corona streamers ──
   const STREAMERS = Array.from({ length: 20 }, (_, i) => ({
     ang:   (i / 20) * PI2 + (Math.random() - 0.5) * 0.4,
     len:   85 + Math.random() * 140,
@@ -1795,172 +1800,393 @@
     alpha: 0.11 + Math.random() * 0.17,
   }));
 
-  // ── Granulation cells (convective upwellings) ──
   const CELLS = Array.from({ length: 65 }, () => ({
-    ox: (Math.random() - 0.5) * R * 1.72,
-    oy: (Math.random() - 0.5) * R * 1.72,
-    r:  15 + Math.random() * 25,
+    ox:    (Math.random() - 0.5) * 2 * 210,
+    oy:    (Math.random() - 0.5) * 2 * 210,
+    r:     15 + Math.random() * 25,
     phase: Math.random() * PI2,
     speed: 0.35 + Math.random() * 1.0,
   }));
 
-  let lastTs = null, simT = 0;
+  // ── Solar system bodies ──────────────────────
+  // Colors complement the site's dark-warm palette
+  const PLANETS = [
+    { naif: '199', label: 'Mercury', color: '#b0a090', dotR: 4 },
+    { naif: '299', label: 'Venus',   color: '#d4b06a', dotR: 5 },
+    { naif: '399', label: 'Earth',   color: '#4e8db5', dotR: 6 },
+  ];
+
+  const SPACECRAFT = [
+    { naif: '-96',  label: 'Parker Solar Probe', short: 'PSP',       color: '#ff8c00', dotR: 3 },
+    { naif: '-144', label: 'Solar Orbiter',       short: 'SolO',      color: '#48cae4', dotR: 3 },
+    { naif: '-234', label: 'STEREO-A',            short: 'STEREO-A',  color: '#e63946', dotR: 3 },
+    { naif: '-21',  label: 'SOHO',                short: 'SOHO',      color: '#b07de8', dotR: 2.5 },
+    { naif: '-92',  label: 'ACE',                 short: 'ACE',       color: '#90e0ef', dotR: 2.5 },
+  ];
+
+  // bodyState[naif] = { elem: {a,e,omega,M0,T}, fetchTime }
+  const bodyState = {};
+  let positionsReady = false;
+
+  // ── JPL Horizons API ─────────────────────────
+  const KMS_TO_AUYR = (365.25 * 86400) / 1.495978707e8;
+  const GM_AU3_YR2  = 4 * Math.PI * Math.PI;
+
+  function parseHorizons(text) {
+    const m = text.match(/\$\$SOE([\s\S]*?)\$\$EOE/);
+    if (!m) return null;
+    const blk = m[1];
+    const g = key => {
+      const re = new RegExp(key + '\\s*=\\s*([\\-\\d.E+]+)', 'i');
+      const mm = blk.match(re);
+      return mm ? parseFloat(mm[1]) : NaN;
+    };
+    const sv = { x: g('X'), y: g('Y'), vx: g('VX'), vy: g('VY') };
+    return [sv.x, sv.y, sv.vx, sv.vy].some(isNaN) ? null : sv;
+  }
+
+  function stateToElements(sv) {
+    const x = sv.x, y = sv.y;
+    const vx = sv.vx * KMS_TO_AUYR, vy = sv.vy * KMS_TO_AUYR;
+    const r  = Math.sqrt(x*x + y*y);
+    const v2 = vx*vx + vy*vy;
+    const a  = 1 / (2/r - v2/GM_AU3_YR2);
+    if (!isFinite(a) || a <= 0) return null;
+    const dot = x*vx + y*vy;
+    const ex  = ((v2 - GM_AU3_YR2/r)*x - dot*vx) / GM_AU3_YR2;
+    const ey  = ((v2 - GM_AU3_YR2/r)*y - dot*vy) / GM_AU3_YR2;
+    const e   = Math.sqrt(ex*ex + ey*ey);
+    const omega = Math.atan2(ey, ex);
+    const nu  = Math.atan2(y, x) - omega;
+    const E0  = Math.atan2(Math.sqrt(1 - e*e) * Math.sin(nu), e + Math.cos(nu));
+    const M0  = E0 - e * Math.sin(E0);
+    const T   = Math.pow(Math.abs(a), 1.5);
+    return { a, e, omega, M0, T };
+  }
+
+  function solveKepler(M, e) {
+    let E = M;
+    for (let i = 0; i < 12; i++) E -= (E - e*Math.sin(E) - M) / (1 - e*Math.cos(E));
+    return E;
+  }
+
+  function orbitPos(elem, dtYr) {
+    const M = elem.M0 + (PI2 / elem.T) * dtYr;
+    const E = solveKepler(M, elem.e);
+    const nu = 2 * Math.atan2(
+      Math.sqrt(1 + elem.e) * Math.sin(E/2),
+      Math.sqrt(1 - elem.e) * Math.cos(E/2)
+    );
+    const r = elem.a * (1 - elem.e * Math.cos(E));
+    return { x: r * Math.cos(nu + elem.omega), y: r * Math.sin(nu + elem.omega) };
+  }
+
+  async function fetchBody(naif) {
+    const d1 = new Date().toISOString().slice(0, 10);
+    const d2 = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
+    const p  = new URLSearchParams({
+      format: 'json', COMMAND: naif, OBJ_DATA: 'NO',
+      MAKE_EPHEM: 'YES', EPHEM_TYPE: 'VECTORS',
+      CENTER: '500@10', REF_PLANE: 'ECLIPTIC',
+      START_TIME: d1, STOP_TIME: d2, STEP_SIZE: '1d',
+      VEC_TABLE: '2', VEC_LABELS: 'YES', CSV_FORMAT: 'NO',
+    });
+    const r = await fetch('https://ssd.jpl.nasa.gov/api/horizons.api?' + p);
+    const d = await r.json();
+    return parseHorizons(d.result || '');
+  }
+
+  // Fallback orbital elements (approximate for 2026)
+  const FALLBACK_ELEMS = {
+    '199':  { a:0.387, e:0.206, omega:1.352, M0:1.45,  T:0.241 },
+    '299':  { a:0.723, e:0.007, omega:2.628, M0:3.80,  T:0.615 },
+    '399':  { a:1.000, e:0.017, omega:1.796, M0:2.05,  T:1.000 },
+    '-96':  { a:0.366, e:0.874, omega:5.20,  M0:0.30,  T:0.241 },
+    '-144': { a:0.600, e:0.310, omega:0.80,  M0:2.90,  T:0.600 },
+    '-234': { a:0.958, e:0.006, omega:3.10,  M0:2.00,  T:0.960 },
+    '-21':  { a:1.001, e:0.017, omega:1.796, M0:2.06,  T:1.001 },
+    '-92':  { a:1.001, e:0.017, omega:1.796, M0:2.04,  T:1.001 },
+  };
+
+  let fetchEpochMs = Date.now();
+
+  async function loadAllPositions() {
+    fetchEpochMs = Date.now();
+    const all = [...PLANETS, ...SPACECRAFT];
+    // Set fallbacks immediately so drawing starts right away
+    for (const [naif, elem] of Object.entries(FALLBACK_ELEMS)) {
+      bodyState[naif] = { elem };
+    }
+    positionsReady = true;
+    // Then refine with live Horizons data
+    await Promise.allSettled(all.map(async body => {
+      try {
+        const sv = await fetchBody(body.naif);
+        if (sv) {
+          const elem = stateToElements(sv);
+          if (elem) {
+            bodyState[body.naif] = { elem };
+            fetchEpochMs = Date.now(); // reset epoch to now
+          }
+        }
+      } catch (_) {}
+    }));
+  }
+
+  loadAllPositions();
+
+  // ── Hex → rgba helper ────────────────────────
+  function rgba(hex, a) {
+    const n = parseInt(hex.slice(1), 16);
+    return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;
+  }
+
+  // ── Draw: solar disk (close-up view) ─────────
+  function drawSolarDisk(R, alpha) {
+    if (alpha <= 0) return;
+    ctx.globalAlpha = alpha;
+    const pulse = 0.05 + 0.022 * Math.sin(simT * 0.55);
+
+    // Outer corona
+    const cg = ctx.createRadialGradient(CX, CY, R*0.88, CX, CY, R*3.1);
+    cg.addColorStop(0,    `rgba(220,140,55,${0.22+pulse})`);
+    cg.addColorStop(0.18, `rgba(196,98,36,${0.11+pulse*0.5})`);
+    cg.addColorStop(0.50, 'rgba(160,60,20,0.04)');
+    cg.addColorStop(1,    'rgba(0,0,0,0)');
+    ctx.beginPath(); ctx.arc(CX, CY, R*3.1, 0, PI2);
+    ctx.fillStyle = cg; ctx.fill();
+
+    // Corona streamers
+    for (const s of STREAMERS) {
+      const p  = 0.62 + 0.38 * Math.sin(simT*1.1 + s.phase);
+      const bx = CX + Math.cos(s.ang)*(R-3),   by = CY + Math.sin(s.ang)*(R-3);
+      const ex = CX + Math.cos(s.ang)*(R+s.len*p), ey = CY + Math.sin(s.ang)*(R+s.len*p);
+      const sg = ctx.createLinearGradient(bx, by, ex, ey);
+      sg.addColorStop(0,    `rgba(232,162,68,${s.alpha*p})`);
+      sg.addColorStop(0.35, `rgba(205,115,42,${s.alpha*p*0.5})`);
+      sg.addColorStop(1,    'rgba(0,0,0,0)');
+      ctx.beginPath(); ctx.moveTo(bx, by); ctx.lineTo(ex, ey);
+      ctx.strokeStyle = sg; ctx.lineWidth = s.w*p; ctx.lineCap = 'round'; ctx.stroke();
+    }
+
+    // H-α prominences
+    for (const p of PROMS) {
+      const u = 0.72 + 0.28 * Math.sin(simT*0.65 + p.phase);
+      const h = p.h*u, sp = p.span*u, a = p.ang;
+      const f1x = CX+Math.cos(a-sp)*R,              f1y = CY+Math.sin(a-sp)*R;
+      const f2x = CX+Math.cos(a+sp)*R,              f2y = CY+Math.sin(a+sp)*R;
+      const apx = CX+Math.cos(a)*(R+h),             apy = CY+Math.sin(a)*(R+h);
+      const c1x = CX+Math.cos(a-sp*0.4)*(R+h*0.85),c1y = CY+Math.sin(a-sp*0.4)*(R+h*0.85);
+      const c2x = CX+Math.cos(a+sp*0.4)*(R+h*0.85),c2y = CY+Math.sin(a+sp*0.4)*(R+h*0.85);
+      const pg = ctx.createLinearGradient(CX+Math.cos(a)*R, CY+Math.sin(a)*R, apx, apy);
+      pg.addColorStop(0,    `rgba(245,85,72,${p.alpha*u*0.95})`);
+      pg.addColorStop(0.45, `rgba(220,62,55,${p.alpha*u*0.60})`);
+      pg.addColorStop(1,    `rgba(190,44,40,${p.alpha*u*0.15})`);
+      ctx.beginPath(); ctx.moveTo(f1x, f1y);
+      ctx.bezierCurveTo(c1x,c1y,apx,apy,apx,apy);
+      ctx.bezierCurveTo(apx,apy,c2x,c2y,f2x,f2y);
+      ctx.strokeStyle = pg; ctx.lineWidth = 3.2+u*2.2; ctx.lineCap = ctx.lineJoin = 'round'; ctx.stroke();
+    }
+
+    // Photosphere (limb darkening)
+    const dg = ctx.createRadialGradient(CX-R*0.1, CY-R*0.1, 0, CX, CY, R);
+    dg.addColorStop(0,    '#fff9e4');
+    dg.addColorStop(0.25, '#ffe07c');
+    dg.addColorStop(0.52, '#f2a840');
+    dg.addColorStop(0.76, '#cc5c16');
+    dg.addColorStop(0.92, '#7c1c05');
+    dg.addColorStop(1,    '#0d0100');
+    ctx.beginPath(); ctx.arc(CX, CY, R, 0, PI2); ctx.fillStyle = dg; ctx.fill();
+
+    // Surface features (clipped to disk)
+    ctx.save();
+    ctx.beginPath(); ctx.arc(CX, CY, R*0.997, 0, PI2); ctx.clip();
+
+    const sc = R / 210;
+    // Granulation
+    for (const cell of CELLS) {
+      const ox = cell.ox*sc, oy = cell.oy*sc, r = cell.r*sc;
+      const d = Math.hypot(ox, oy);
+      if (d > R*0.91) continue;
+      const limbF = 1 - (d/R)**2.2;
+      const br    = limbF * 0.068 * (0.5 + 0.5*Math.sin(simT*cell.speed + cell.phase));
+      const fg = ctx.createRadialGradient(CX+ox, CY+oy, 0, CX+ox, CY+oy, r);
+      fg.addColorStop(0,    `rgba(255,248,192,${br})`);
+      fg.addColorStop(0.65, `rgba(195,145,52,${br*0.28})`);
+      fg.addColorStop(1,    'rgba(0,0,0,0)');
+      ctx.beginPath(); ctx.arc(CX+ox, CY+oy, r, 0, PI2); ctx.fillStyle = fg; ctx.fill();
+    }
+
+    // Sunspots
+    for (let i = 0; i < SPOTS.length; i++) {
+      const s = SPOTS[i];
+      const lon    = ((spotLons[i] % PI2) + PI2) % PI2;
+      const lonRel = lon > Math.PI ? lon - PI2 : lon;
+      const { px, py, z } = project(lonRel, s.lat, R);
+      if (z < 0.03) continue;
+      const radAngle = Math.atan2(py-CY, px-CX);
+      ctx.save(); ctx.translate(px, py); ctx.rotate(radAngle); ctx.scale(z, 1);
+      const pg = ctx.createRadialGradient(0,0,0, 0,0,s.rP*sc);
+      pg.addColorStop(0,    'rgba(14,6,2,0.97)');
+      pg.addColorStop(0.40, 'rgba(26,10,3,0.94)');
+      pg.addColorStop(0.60, 'rgba(62,28,9,0.82)');
+      pg.addColorStop(0.78, 'rgba(108,52,17,0.58)');
+      pg.addColorStop(0.90, 'rgba(158,82,26,0.28)');
+      pg.addColorStop(1,    'rgba(200,120,40,0.00)');
+      ctx.beginPath(); ctx.arc(0, 0, s.rP*sc, 0, PI2); ctx.fillStyle = pg; ctx.fill();
+      ctx.restore();
+    }
+    ctx.restore();
+    ctx.globalAlpha = 1;
+  }
+
+  // ── Draw: solar system view ──────────────────
+  function drawOrbitPath(elem, auPx, color, lineW, dash) {
+    const { a, e, omega } = elem;
+    ctx.save();
+    ctx.strokeStyle = color; ctx.lineWidth = lineW;
+    if (dash) ctx.setLineDash(dash);
+    ctx.beginPath();
+    for (let i = 0; i <= 360; i++) {
+      const nu = (i/360) * PI2;
+      const r  = a*(1 - e*e) / (1 + e*Math.cos(nu));
+      const sx = CX + r*Math.cos(nu+omega)*auPx;
+      const sy = CY - r*Math.sin(nu+omega)*auPx;
+      i === 0 ? ctx.moveTo(sx, sy) : ctx.lineTo(sx, sy);
+    }
+    ctx.closePath(); ctx.stroke();
+    ctx.setLineDash([]); ctx.restore();
+  }
+
+  function drawBody(x, y, auPx, dotR, color, label, isSC, labelOffset) {
+    const sx = CX + x*auPx, sy = CY - y*auPx;
+    // Glow halo
+    const glow = ctx.createRadialGradient(sx, sy, 0, sx, sy, dotR*5);
+    glow.addColorStop(0,   rgba(color, 0.45));
+    glow.addColorStop(0.4, rgba(color, 0.12));
+    glow.addColorStop(1,   'rgba(0,0,0,0)');
+    ctx.beginPath(); ctx.arc(sx, sy, dotR*5, 0, PI2); ctx.fillStyle = glow; ctx.fill();
+    // Dot
+    ctx.beginPath(); ctx.arc(sx, sy, dotR, 0, PI2);
+    ctx.fillStyle = color; ctx.fill();
+    // Label
+    const lx = sx + (labelOffset ? labelOffset[0] : dotR+5);
+    const ly = sy + (labelOffset ? labelOffset[1] : 4);
+    ctx.fillStyle = isSC ? 'rgba(196,212,230,0.88)' : 'rgba(180,200,220,0.65)';
+    ctx.font = isSC ? '500 9px "JetBrains Mono"' : '400 10px "IBM Plex Sans"';
+    ctx.fillText(label, lx, ly);
+  }
+
+  function drawSolarSystemView(auPx, alpha) {
+    if (alpha <= 0 || !positionsReady) return;
+    ctx.globalAlpha = alpha;
+    const dtYr = (Date.now() - fetchEpochMs) / (365.25 * 86400 * 1000);
+
+    // Sun — glowing disk
+    const sunR = Math.max(5, 16 * auPx / 280);
+    const sg = ctx.createRadialGradient(CX, CY, 0, CX, CY, sunR*6);
+    sg.addColorStop(0,    'rgba(255,245,160,1.0)');
+    sg.addColorStop(0.12, 'rgba(255,200, 70,0.85)');
+    sg.addColorStop(0.30, 'rgba(200,100, 30,0.30)');
+    sg.addColorStop(0.60, 'rgba(140, 60, 15,0.08)');
+    sg.addColorStop(1,    'rgba(0,0,0,0)');
+    ctx.beginPath(); ctx.arc(CX, CY, sunR*6, 0, PI2); ctx.fillStyle = sg; ctx.fill();
+    ctx.beginPath(); ctx.arc(CX, CY, sunR,   0, PI2); ctx.fillStyle = '#fff8cc'; ctx.fill();
+
+    // Planets — orbits then dots
+    for (const body of PLANETS) {
+      const st = bodyState[body.naif];
+      if (!st) continue;
+      drawOrbitPath(st.elem, auPx, rgba(body.color, 0.22), 0.8, null);
+    }
+    for (const body of PLANETS) {
+      const st = bodyState[body.naif];
+      if (!st) continue;
+      const pos = orbitPos(st.elem, dtYr);
+      drawBody(pos.x, pos.y, auPx, body.dotR, body.color, body.label, false, null);
+    }
+
+    // Spacecraft — dashed orbits then dots
+    for (const sc of SPACECRAFT) {
+      const st = bodyState[sc.naif];
+      if (!st) continue;
+      drawOrbitPath(st.elem, auPx, rgba(sc.color, 0.30), 0.6, [4, 9]);
+    }
+    for (const sc of SPACECRAFT) {
+      const st = bodyState[sc.naif];
+      if (!st) continue;
+      const pos = orbitPos(st.elem, dtYr);
+      drawBody(pos.x, pos.y, auPx, sc.dotR, sc.color, sc.short, true, null);
+    }
+
+    // Aditya-L1 — L1 of Sun-Earth system (0.99× Earth distance, same direction)
+    const earthSt = bodyState['399'];
+    if (earthSt) {
+      const ep  = orbitPos(earthSt.elem, dtYr);
+      const ang = Math.atan2(ep.y, ep.x);
+      const r   = Math.sqrt(ep.x*ep.x + ep.y*ep.y) * 0.99;
+      const lx  = r * Math.cos(ang), ly = r * Math.sin(ang);
+      drawBody(lx, ly, auPx, 2.5, '#f72585', 'Aditya-L1', true, [5, -8]);
+    }
+
+    // Data attribution
+    ctx.fillStyle = 'rgba(110,128,153,0.55)';
+    ctx.font = '400 9px "JetBrains Mono"';
+    ctx.fillText('Positions: JPL Horizons (real-time)', CX - 88, H - 18);
+
+    ctx.globalAlpha = 1;
+  }
+
+  // ── Main animation loop ──────────────────────
+  let lastTs = null, simT = 0, dtFrame = 0;
 
   function frame(ts) {
     if (!lastTs) lastTs = ts;
-    const dt = Math.min((ts - lastTs) / 1000, 0.05);
-    lastTs = ts;
-    simT  += dt;
+    dtFrame = Math.min((ts - lastTs) / 1000, 0.05);
+    lastTs  = ts;
+    simT   += dtFrame;
 
-    // Advance spot longitudes (differential rotation per latitude)
-    SPOTS.forEach((s, i) => { spotLons[i] += dt * EQ_OMEGA * diffOmega(s.lat); });
+    // Advance solar physics (always, so re-zooming in still looks live)
+    SPOTS.forEach((s, i) => { spotLons[i] += dtFrame * EQ_OMEGA * diffOmega(s.lat); });
+    for (const s of STREAMERS) s.ang += s.drift * dtFrame;
+    for (const p of PROMS)     p.ang += p.drift * dtFrame;
 
     ctx.clearRect(0, 0, W, H);
 
-    // ─── 1. Outer corona / F-corona glow ───
-    const pulse = 0.05 + 0.022 * Math.sin(simT * 0.55);
-    const cg = ctx.createRadialGradient(CX, CY, R * 0.88, CX, CY, R * 3.1);
-    cg.addColorStop(0,    `rgba(220, 140, 55, ${0.22 + pulse})`);
-    cg.addColorStop(0.18, `rgba(196,  98, 36, ${0.11 + pulse * 0.5})`);
-    cg.addColorStop(0.50, 'rgba(160, 60, 20, 0.04)');
-    cg.addColorStop(1,    'rgba(0,0,0,0)');
-    ctx.beginPath();
-    ctx.arc(CX, CY, R * 3.1, 0, PI2);
-    ctx.fillStyle = cg;
-    ctx.fill();
+    const p = easeIO(scrollP);
 
-    // ─── 2. Corona streamers ───
-    for (const s of STREAMERS) {
-      s.ang += s.drift * dt;
-      const p  = 0.62 + 0.38 * Math.sin(simT * 1.1 + s.phase);
-      const bx = CX + Math.cos(s.ang) * (R - 3);
-      const by = CY + Math.sin(s.ang) * (R - 3);
-      const ex = CX + Math.cos(s.ang) * (R + s.len * p);
-      const ey = CY + Math.sin(s.ang) * (R + s.len * p);
-      const sg = ctx.createLinearGradient(bx, by, ex, ey);
-      sg.addColorStop(0,    `rgba(232, 162, 68, ${s.alpha * p})`);
-      sg.addColorStop(0.35, `rgba(205, 115, 42, ${s.alpha * p * 0.5})`);
-      sg.addColorStop(1,    'rgba(0,0,0,0)');
-      ctx.beginPath();
-      ctx.moveTo(bx, by);
-      ctx.lineTo(ex, ey);
-      ctx.strokeStyle = sg;
-      ctx.lineWidth = s.w * p;
-      ctx.lineCap = 'round';
-      ctx.stroke();
+    // Sun radius: log-interpolate from large (hero) to small dot (solar system view)
+    const R_max = Math.min(W, H) * 0.40;
+    const R_min = 22;
+    const R = lerpLog(R_max, R_min, p);
+
+    // AU scale: pixels per 1 AU when fully zoomed out
+    const auPx_max = Math.min(W, H) * 0.27;
+    const auPx_min = 18;
+    const auPx = lerpLog(auPx_min, auPx_max, p);
+
+    // Alphas: disk fades out first half, solar system fades in second half
+    const diskAlpha = clamp(1 - p * 2.2, 0, 1);
+    const sysAlpha  = clamp((p - 0.25) / 0.55, 0, 1);
+
+    // Between the two: transition corona glows smoothly
+    if (p > 0 && diskAlpha < 1) {
+      const blendA = 1 - diskAlpha;
+      const cg2 = ctx.createRadialGradient(CX, CY, R*0.7, CX, CY, R*5);
+      cg2.addColorStop(0,   `rgba(220,140,55,${0.38*blendA})`);
+      cg2.addColorStop(0.25,`rgba(180,80,20,${0.18*blendA})`);
+      cg2.addColorStop(1,   'rgba(0,0,0,0)');
+      ctx.beginPath(); ctx.arc(CX, CY, R*5, 0, PI2); ctx.fillStyle = cg2; ctx.fill();
+      // Small photosphere placeholder so the sun doesn't vanish mid-transition
+      const dg2 = ctx.createRadialGradient(CX, CY, 0, CX, CY, R);
+      dg2.addColorStop(0,   `rgba(255,248,200,${blendA})`);
+      dg2.addColorStop(0.6, `rgba(240,160,60,${blendA*0.8})`);
+      dg2.addColorStop(1,   `rgba(100,30,5,${blendA*0.3})`);
+      ctx.beginPath(); ctx.arc(CX, CY, R, 0, PI2); ctx.fillStyle = dg2; ctx.fill();
     }
 
-    // ─── 3. H-α loop prominences (pinkish-red, arch shape) ───
-    for (const p of PROMS) {
-      p.ang += p.drift * dt;
-      const u  = 0.72 + 0.28 * Math.sin(simT * 0.65 + p.phase);
-      const h  = p.h  * u;
-      const sp = p.span * u;
-      const a  = p.ang;
-
-      // Two foot-points on limb
-      const f1x = CX + Math.cos(a - sp) * R,  f1y = CY + Math.sin(a - sp) * R;
-      const f2x = CX + Math.cos(a + sp) * R,  f2y = CY + Math.sin(a + sp) * R;
-      // Apex
-      const apx = CX + Math.cos(a) * (R + h), apy = CY + Math.sin(a) * (R + h);
-      // Bézier control points (smooth loop arch)
-      const c1x = CX + Math.cos(a - sp * 0.4) * (R + h * 0.85);
-      const c1y = CY + Math.sin(a - sp * 0.4) * (R + h * 0.85);
-      const c2x = CX + Math.cos(a + sp * 0.4) * (R + h * 0.85);
-      const c2y = CY + Math.sin(a + sp * 0.4) * (R + h * 0.85);
-
-      // H-α gradient: bright base → dimmer apex
-      const pg = ctx.createLinearGradient(
-        CX + Math.cos(a) * R, CY + Math.sin(a) * R, apx, apy
-      );
-      pg.addColorStop(0,    `rgba(245, 85, 72, ${p.alpha * u * 0.95})`);
-      pg.addColorStop(0.45, `rgba(220, 62, 55, ${p.alpha * u * 0.60})`);
-      pg.addColorStop(1,    `rgba(190, 44, 40, ${p.alpha * u * 0.15})`);
-
-      ctx.beginPath();
-      ctx.moveTo(f1x, f1y);
-      ctx.bezierCurveTo(c1x, c1y, apx, apy, apx, apy);
-      ctx.bezierCurveTo(apx, apy, c2x, c2y, f2x, f2y);
-      ctx.strokeStyle = pg;
-      ctx.lineWidth   = 3.2 + u * 2.2;
-      ctx.lineCap = ctx.lineJoin = 'round';
-      ctx.stroke();
-    }
-
-    // ─── 4. Photosphere — realistic limb darkening ───
-    // Center 5778 K (white-yellow) → limb ~4400 K (orange-red)
-    const dg = ctx.createRadialGradient(CX - R * 0.1, CY - R * 0.1, 0, CX, CY, R);
-    dg.addColorStop(0,    '#fff9e4');  // 5800 K — white-yellow
-    dg.addColorStop(0.25, '#ffe07c');  // 5400 K — golden
-    dg.addColorStop(0.52, '#f2a840');  // 5000 K — orange-yellow
-    dg.addColorStop(0.76, '#cc5c16');  // 4400 K — orange-red
-    dg.addColorStop(0.92, '#7c1c05');  // 4000 K — deep red limb
-    dg.addColorStop(1,    '#0d0100');
-    ctx.beginPath();
-    ctx.arc(CX, CY, R, 0, PI2);
-    ctx.fillStyle = dg;
-    ctx.fill();
-
-    // ─── 5. Surface features — clip to disk ───
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(CX, CY, R * 0.997, 0, PI2);
-    ctx.clip();
-
-    // Granulation: bright convection cell centres, dark intergranular lanes
-    for (const cell of CELLS) {
-      const d = Math.hypot(cell.ox, cell.oy);
-      if (d > R * 0.91) continue;
-      const limbF = 1 - (d / R) ** 2.2;   // fades toward limb (less visible there)
-      const br    = limbF * 0.068 * (0.5 + 0.5 * Math.sin(simT * cell.speed + cell.phase));
-      const fg = ctx.createRadialGradient(
-        CX + cell.ox, CY + cell.oy, 0,
-        CX + cell.ox, CY + cell.oy, cell.r
-      );
-      fg.addColorStop(0,   `rgba(255, 248, 192, ${br})`);       // bright upwelling
-      fg.addColorStop(0.65, `rgba(195, 145, 52, ${br * 0.28})`); // darker lane boundary
-      fg.addColorStop(1,    'rgba(0,0,0,0)');
-      ctx.beginPath();
-      ctx.arc(CX + cell.ox, CY + cell.oy, cell.r, 0, PI2);
-      ctx.fillStyle = fg;
-      ctx.fill();
-    }
-
-    // Sunspots — umbra + penumbra with differential rotation + foreshortening
-    for (let i = 0; i < SPOTS.length; i++) {
-      const s   = SPOTS[i];
-      // Normalise longitude to −π…π relative to central meridian
-      const lon = ((spotLons[i] % PI2) + PI2) % PI2;
-      const lonRel = lon > Math.PI ? lon - PI2 : lon;
-      const { px, py, z } = project(lonRel, s.lat);
-      if (z < 0.03) continue;   // behind or on far limb
-
-      // Foreshortening: compress the spot ellipse in the radial direction
-      const radAngle = Math.atan2(py - CY, px - CX);
-
-      ctx.save();
-      ctx.translate(px, py);
-      ctx.rotate(radAngle);   // orient so x-axis points radially outward
-      ctx.scale(z, 1);        // compress radially (spot becomes ellipse near limb)
-
-      // Penumbra gradient: dark brownish outer ring (real colour ~4500 K)
-      const pg = ctx.createRadialGradient(0, 0, 0, 0, 0, s.rP);
-      pg.addColorStop(0,    'rgba(14,  6,  2, 0.97)');   // umbra centre — near-black
-      pg.addColorStop(0.40, 'rgba(26, 10,  3, 0.94)');   // umbra body
-      pg.addColorStop(0.60, 'rgba(62, 28,  9, 0.82)');   // inner penumbra — dark brown
-      pg.addColorStop(0.78, 'rgba(108, 52, 17, 0.58)');  // outer penumbra
-      pg.addColorStop(0.90, 'rgba(158, 82, 26, 0.28)');  // blend into photosphere
-      pg.addColorStop(1,    'rgba(200,120, 40, 0.00)');
-
-      ctx.beginPath();
-      ctx.arc(0, 0, s.rP, 0, PI2);
-      ctx.fillStyle = pg;
-      ctx.fill();
-
-      ctx.restore();
-    }
-
-    ctx.restore();  // end disk clip
+    drawSolarDisk(R_max * (1 - p) + R_min * p, diskAlpha);
+    drawSolarSystemView(auPx, sysAlpha);
 
     requestAnimationFrame(frame);
   }
