@@ -1325,6 +1325,50 @@
     }
     .pub-cv-download:hover { background: rgba(196,124,56,0.22) !important; border-color: var(--warm) !important; }
 
+    /* ── Press / Outreach ── */
+    .press-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1.2rem;
+      margin-bottom: 1.5rem;
+    }
+    .press-card {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 1.2rem 1.4rem;
+      text-decoration: none;
+      display: block;
+      transition: border-color var(--ease), transform var(--ease);
+    }
+    .press-card:hover { border-color: var(--border-hi); transform: translateY(-2px); }
+    .press-card-placeholder { cursor: default; }
+    .press-card-placeholder:hover { transform: none; border-color: var(--border); }
+    .press-source {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: var(--warm-dim);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+    .press-headline {
+      font-size: 0.88rem;
+      color: var(--text-1);
+      line-height: 1.55;
+      margin-bottom: 0.6rem;
+    }
+    .press-date {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: var(--text-3);
+    }
+    .press-note {
+      font-size: 0.8rem;
+      color: var(--text-3);
+      font-style: italic;
+    }
+
     /* ── Research timeline ── */
     .rtl {
       position: relative;
@@ -1970,6 +2014,37 @@
         </div>
 
       </div>
+    </div>
+  </section>
+
+  <!-- ═══ PRESS / OUTREACH ═══ -->
+  <section id="press" style="border-top: 1px solid var(--border); padding: 3.5rem 2.5rem;">
+    <div class="container">
+      <span class="sec-eyebrow fi">Media &amp; Outreach</span>
+      <h2 class="sec-title fi d1">Press &amp; Public Engagement</h2>
+      <div class="sec-rule fi d2"></div>
+      <div class="press-grid fi d3">
+
+        <a class="press-card" href="https://www.aries.res.in/news" target="_blank">
+          <div class="press-source">ARIES Newsletter</div>
+          <div class="press-headline">Breakout CME simulation yields new helicity insights</div>
+          <div class="press-date">2025</div>
+        </a>
+
+        <div class="press-card press-card-placeholder">
+          <div class="press-source">Public Talk</div>
+          <div class="press-headline">Solar Storms: From the Sun to Earth — National Science Day Lecture, ARIES</div>
+          <div class="press-date">Feb 2024</div>
+        </div>
+
+        <div class="press-card press-card-placeholder">
+          <div class="press-source">Astronomy Olympiad</div>
+          <div class="press-headline">Mentored students for IOAA preparatory sessions at ARIES</div>
+          <div class="press-date">2023</div>
+        </div>
+
+      </div>
+      <p class="press-note fi">For media inquiries, please use the contact section below.</p>
     </div>
   </section>
 
